@@ -1,0 +1,63 @@
+{% extends 'base-back.html.twig' %}
+
+{% block body %}
+<main id="main" class="main">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 text-primary">Liste des Packs</h1>
+        
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Nom Pack</th>
+                    <th>Description</th>
+                    <th>Prix</th>
+                    <th>Durée</th>
+                    <th>Avantages</th>
+                    <th>Statut</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pack in packs %}
+                    <tr>
+                        <td>{{ pack.getIdPack() }}</td>
+                        <td>{{ pack.getNomPack() }}</td>
+                        <td>{{ pack.getDescription() }}</td>
+                        <td>{{ pack.getPrix() }} dt</td>
+                        <td>{{ pack.getDuree() }}</td>
+                        <td>{{ pack.getAvantages() }}</td>
+                        <td>
+                            {% if pack.getStatut() == 'Actif' %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-danger">Expiré</span>
+                            {% endif %}
+                        </td>
+                        <td class="d-flex justify-content-center gap-1">
+                            <a href="{{ path('edit_pack', { id_pack: pack.getIdPack() }) }}" 
+                               class="btn btn-outline-primary btn-sm" title="Modifier">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <a href="{{ path('delete_pack', { id_pack: pack.getIdPack() }) }}" 
+                               class="btn btn-outline-danger btn-sm" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">Aucun pack trouvé.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="text-center mt-4">
+            <a href="{{ path('add_pack') }}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-1"></i> Ajouter un Pack
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Liste des Partenaires{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Liste des Partenaires</h1>
+
+            <div class="card shadow-lg p-4 rounded-lg custom-bg-light">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered table-striped text-center align-middle custom-table-bg">
+                            <thead class="bg-info text-white">
+                            <tr>
+                                <th class="custom-th">ID</th>
+                                <th class="custom-th">Nom</th>
+                                <th class="custom-th">Email</th>
+                                <th class="custom-th">Adresse</th>
+                                <th class="custom-th">Description</th>
+                                <th class="custom-th">Date d'ajout</th>
+                                <th class="custom-th">Catégorie</th>
+                                <th class="custom-th">Montant</th>
+                                <th class="custom-th">Logo</th>
+                                <th class="custom-th">Téléphone</th>
+                                <th class="custom-th">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for partenaire in partenaires %}
+                                <tr>
+                                    <td class="text-muted">{{ partenaire.id }}</td>
+                                    <td>{{ partenaire.nom }}</td>
+                                    <td>{{ partenaire.email }}</td>
+                                    <td>{{ partenaire.adresse }}</td>
+                                    <td>{{ partenaire.description }}</td>
+                                    <td>{{ partenaire.dateAjout ? partenaire.dateAjout|date('d/m/Y') : 'N/A' }}</td>
+                                    <td>{{ partenaire.getIdCategorie ? partenaire.getIdCategorie.nom : 'N/A' }}</td>
+                                    <td>{{ partenaire.montant }}</td>
+                                    <td>
+                                        {% if partenaire.logo %}
+                                            <img src="{{ asset('uploads/partenaires/' ~ partenaire.logo) }}" alt="Logo" style="width: 60px; height: auto;">
+                                        {% else %}
+                                            <span class="text-muted">Pas de logo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ partenaire.numTel ? partenaire.numTel : 'N/A' }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ path('edit_partenaire', { id: partenaire.id }) }}" class="btn btn-outline-primary btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                            <a href="{{ path('delete_partenaire', { id: partenaire.id }) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce partenaire ?');" title="Supprimer">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
+                                            <a href="javascript:void(0);" class="btn btn-outline-success btn-sm send-sms-btn" data-id="{{ partenaire.id }}" data-name="{{ partenaire.nom }}" title="Envoyer SMS">
+                                                <i class="bi bi-chat-dots-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted">Aucun partenaire trouvé.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-center mt-4 d-flex flex-column gap-2 align-items-center">
+                        <a href="{{ path('add_partenaire') }}" class="btn btn-success px-4 py-2">
+                            <i class="bi bi-plus-circle-dotted"></i> Ajouter un Partenaire
+                        </a>
+
+                        <a id="export-pdf-btn" class="btn btn-danger disabled">
+                            <i class="bi bi-file-earmark-pdf-fill"></i> Exporter le contrat PDF
+                        </a>
+
+                        <a href="{{ path('admin_generate_partners') }}" class="btn btn-primary px-4 py-2">
+                            <i class="bi bi-gear-fill"></i> Générer des Partenaires
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .custom-bg-light {
+            background-color: #e9ecef !important;
+        }
+        .custom-table-bg {
+            background-color: #f4f6f9 !important;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .custom-th {
+            background-color: #cce5ff;
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1 !important;
+        }
+        .table-primary {
+            background-color: #d1ecf1 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let selectedPartenaireId = null;
+
+        document.querySelectorAll("tbody tr").forEach(row => {
+            row.addEventListener("dblclick", () => {
+                document.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-primary"));
+                row.classList.add("table-primary");
+
+                selectedPartenaireId = row.querySelector("td").textContent.trim();
+
+                const exportBtn = document.getElementById("export-pdf-btn");
+                exportBtn.classList.remove("disabled");
+                exportBtn.href = "/partenaire/" + selectedPartenaireId + "/contrat";
+            });
+        });
+
+        // Script pour envoyer SMS
+        document.querySelectorAll('.send-sms-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const partenaireId = this.dataset.id;
+                const partenaireName = this.dataset.name;
+
+                Swal.fire({
+                    title: 'Envoyer un SMS à ' + partenaireName,
+                    input: 'textarea',
+                    inputPlaceholder: 'Tapez votre message...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Envoyer',
+                    cancelButtonText: 'Annuler',
+                    preConfirm: (message) => {
+                        if (!message) {
+                            Swal.showValidationMessage('Vous devez écrire un message.');
+                        }
+                        return message;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/partenaire/send-sms/' + partenaireId, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: 'message=' + encodeURIComponent(result.value)
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('✅ Succès', data.success, 'success');
+                                } else {
+                                    Swal.fire('❌ Erreur', data.error || 'Erreur inconnue.', 'error');
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire('❌ Erreur', 'Erreur lors de l\'envoi du SMS.', 'error');
+                            });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

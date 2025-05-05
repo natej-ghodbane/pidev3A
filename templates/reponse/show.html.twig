@@ -1,0 +1,77 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Détails de la Réponse{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Détails de la Réponse</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_reponse_back') }}">Réponses</a></li>
+                    <li class="breadcrumb-item active">Détails</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Informations de la Réponse</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">ID</div>
+                                <div class="col-lg-9 col-md-8">{{ reponse.id }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Date</div>
+                                <div class="col-lg-9 col-md-8">{{ reponse.dateRep ? reponse.dateRep|date('d/m/Y H:i') : '' }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Réclamation associée</div>
+                                <div class="col-lg-9 col-md-8">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="mb-1"><strong>Description :</strong> {{ reponse.reclamation.descriptionRec }}</p>
+                                            <p class="mb-1"><strong>Type :</strong> {{ reponse.reclamation.typeRec }}</p>
+                                            <p class="mb-0"><strong>État :</strong> 
+                                                <span class="badge bg-{{ reponse.reclamation.etatRec == 'En cours' ? 'warning' : (reponse.reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                                    {{ reponse.reclamation.etatRec }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Contenu</div>
+                                <div class="col-lg-9 col-md-8">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            {{ reponse.contenu }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <a href="{{ path('app_reponse_back') }}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Retour à la liste
+                                </a>
+                                <a href="{{ path('app_reponse_edit', {'id': reponse.id}) }}" class="btn btn-warning">
+                                    <i class="bi bi-pencil me-1"></i>Modifier
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

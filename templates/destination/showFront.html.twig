@@ -1,0 +1,396 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nos Destinations{% endblock %}
+
+{% block welcome %}
+    <h1 class="text-center mt-5 mb-4 fw-bold">🌟 Nos Destinations</h1>
+{% endblock %}
+
+{% block body %}
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <style>
+        .destination-card {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .destination-card:hover {
+            transform: scale(1.02);
+        }
+
+        .image-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .description-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            pointer-events: none;
+        }
+
+        .image-wrapper:hover .description-overlay {
+            opacity: 1;
+        }
+
+        .destination-card-content {
+            padding: 15px;
+            background: white;
+            text-align: center;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        .destination-card h5 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .destination-card .details {
+            font-size: 14px;
+            color: #555;
+        }
+
+        #leafletMap {
+            height: 600px;
+            width: 100%;
+        }
+
+        .rounded-circle {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 20px;
+            text-align: center;
+            line-height: 36px;
+        }
+    </style>
+
+    <main class="container py-5" id="destination-list">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            {% for destination in destinations %}
+                <div class="col">
+                    <div class="destination-card">
+                        <div class="image-wrapper">
+                            <img src="{{ destination.imageDestination }}" alt="{{ destination.nomDestination }}">
+                            <div class="description-overlay">
+                                <h5>{{ destination.nomDestination }}</h5>
+                                <p>{{ destination.description }}</p>
+                            </div>
+
+                        </div>
+
+                        <div class="destination-card-content">
+                            <h5>{{ destination.nomDestination }}</h5>
+                            <p class="details">
+                                <strong>Température:</strong> {{ destination.temperature }}°C<br>
+
+                                {% if destination.weather %}
+                                    <strong>🌡️ {{ destination.weather.main.temp }}°C - {{ destination.weather.weather[0].description|capitalize }}</strong><br>
+                                {% else %}
+                                    <strong>Météo indisponible</strong><br>
+                                {% endif %}
+
+                                <strong class="avg-rating">
+                                    {% if destination.avgRating %}
+                                        ⭐ {{ destination.avgRating }}/5 ({{ destination.voteCount }})
+                                    {% else %}
+                                        Pas encore notée
+                                    {% endif %}
+                                </strong>
+                            </p>
+
+
+                            <div class="rating" data-destination-id="{{ destination.id }}">
+                                {% for i in 1..5 %}
+                                    <i class="fa-solid fa-star {% if i <= (destination.userRating ?? 0) %}text-warning{% else %}text-secondary{% endif %}"
+                                       style="cursor:pointer;"
+                                       data-value="{{ i }}"></i>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
+                                <button class="btn btn-outline-primary show-activities-btn"
+                                        data-destination-id="{{ destination.id }}"
+                                        data-destination-name="{{ destination.nomDestination }}">
+                                    Voir les activités
+                                </button>
+
+                                <button class="btn btn-outline-warning mark-on-map-btn"
+                                        data-lat="{{ destination.latitude }}"
+                                        data-lon="{{ destination.longitude }}"
+                                        data-name="{{ destination.nomDestination }}">
+                                    Marquer sur la carte
+                                </button>
+
+                                {% if app.user and not is_granted('ROLE_ADMIN') %}
+                                    <button type="button"
+                                            class="btn {% if destination.id in wishlist %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm rounded-circle toggle-whishlist-btn"
+                                            data-id="{{ destination.id }}"
+                                            title="Ajouter aux favoris">
+                                        ♥
+                                    </button>
+                                {% endif %}
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <p class="text-center text-muted">Aucune destination disponible pour le moment.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <button id="showMapBtn" class="btn btn-primary">Afficher la carte</button>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ path('fullcalendar_activities') }}" class="btn btn-success">🎯 Voir toutes les activités</a>
+        </div>
+
+    </main>
+
+    <!-- Activities Modal -->
+    <div class="modal fade" id="activitiesModal" tabindex="-1" aria-labelledby="activitiesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="activitiesModalLabel">Activités</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body" id="activitiesModalBody">
+                    <p class="text-center">Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Modal -->
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="mapModalLabel">Carte des destinations marquées</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="leafletMap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet & JS Scripts -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        const markedDestinations = [];
+        let map;
+        let mapInitialized = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = new bootstrap.Modal(document.getElementById('activitiesModal'));
+            const modalTitle = document.getElementById('activitiesModalLabel');
+            const modalBody = document.getElementById('activitiesModalBody');
+
+            // Show Activities
+            document.querySelectorAll('.show-activities-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const destinationId = button.dataset.destinationId;
+                    const destinationName = button.dataset.destinationName;
+
+                    modalTitle.textContent = 'Activités à ' + destinationName;
+                    modalBody.innerHTML = '<p class="text-center">Chargement...</p>';
+
+                    fetch('/activites/' + destinationId)
+                        .then(response => response.text())
+                        .then(html => {
+                            modalBody.innerHTML = html;
+                        })
+                        .catch(() => {
+                            modalBody.innerHTML = '<p class="text-danger text-center">Erreur de chargement des activités.</p>';
+                        });
+
+                    modal.show();
+                });
+            });
+
+            // Mark destinations on map
+            document.querySelectorAll('.mark-on-map-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const lat = parseFloat(button.dataset.lat);
+                    const lon = parseFloat(button.dataset.lon);
+                    const name = button.dataset.name;
+
+                    if (!markedDestinations.some(dest => dest.lat === lat && dest.lon === lon)) {
+                        markedDestinations.push({ lat, lon, name });
+                        alert(`Destination "${name}" marquée sur la carte !`);
+                    } else {
+                        alert(`"${name}" est déjà marquée.`);
+                    }
+                });
+            });
+
+            // Show map
+            document.getElementById('showMapBtn').addEventListener('click', () => {
+                const mapModal = new bootstrap.Modal(document.getElementById('mapModal'));
+                mapModal.show();
+
+                setTimeout(() => {
+                    if (!mapInitialized) {
+                        map = L.map('leafletMap').setView([36.8, 10.18], 6);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(map);
+                        mapInitialized = true;
+                    }
+
+                    // Clear old markers
+                    map.eachLayer(layer => {
+                        if (layer instanceof L.Marker) {
+                            map.removeLayer(layer);
+                        }
+                    });
+
+                    const bounds = [];
+
+                    markedDestinations.forEach(dest => {
+                        const marker = L.marker([dest.lat, dest.lon]).addTo(map);
+                        marker.bindPopup(`<strong>${dest.name}</strong>`);
+                        bounds.push([dest.lat, dest.lon]);
+                    });
+
+                    if (bounds.length > 0) {
+                        map.fitBounds(bounds);
+                    }
+                }, 500);
+            });
+
+            // Rating (vote stars)
+            document.querySelectorAll('.rating').forEach(ratingDiv => {
+                const destinationId = ratingDiv.dataset.destinationId;
+
+                ratingDiv.querySelectorAll('i').forEach(star => {
+                    star.addEventListener('click', () => {
+                        const score = star.dataset.value;
+
+                        fetch(`/vote/${destinationId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ score: score })
+                        })
+                            .then(response => {
+                                if (response.status === 403) {
+                                    window.location.href = '/login';
+                                    return Promise.reject('Not logged in');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    // Update stars colors
+                                    ratingDiv.querySelectorAll('i').forEach((s, index) => {
+                                        if (index < score) {
+                                            s.classList.remove('text-secondary');
+                                            s.classList.add('text-warning');
+                                        } else {
+                                            s.classList.remove('text-warning');
+                                            s.classList.add('text-secondary');
+                                        }
+                                    });
+
+                                    // Update average rating and vote count
+                                    fetch(`/destination-average/${destinationId}`, {
+                                        method: 'GET',
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    })
+                                        .then(response => response.json())
+                                        .then(avgData => {
+                                            const avgElement = ratingDiv.closest('.destination-card-content').querySelector('.avg-rating');
+                                            if (avgData.success) {
+                                                avgElement.innerHTML = `⭐ ${avgData.avgRating}/5 (${avgData.voteCount})`;
+                                            }
+                                        });
+
+                                    // Show thank you toast
+                                    const voteToast = new bootstrap.Toast(document.getElementById('voteToast'));
+                                    voteToast.show();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Erreur lors du vote:', error);
+                            });
+                    });
+                });
+            });
+
+            // Toggle wishlist
+            document.querySelectorAll('.toggle-whishlist-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const destinationId = button.dataset.id;
+
+                    fetch('/toggle-whishlist/' + destinationId, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'added') {
+                                button.classList.remove('btn-outline-danger');
+                                button.classList.add('btn-danger');
+                            } else if (data.status === 'removed') {
+                                button.classList.remove('btn-danger');
+                                button.classList.add('btn-outline-danger');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors du changement de favoris:', error);
+                        });
+                });
+            });
+
+        });
+    </script>
+
+
+{% endblock %}

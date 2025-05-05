@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - TrekSwap{% endblock %}
+
+{% block body %}
+<section class="vh-100" style="padding-top: 100px;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+                        <form method="post" class="needs-validation" novalidate id="loginForm">
+                            <h3 class="mb-5">Connexion</h3>
+
+                            {% if error %}
+                                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            {% endif %}
+
+                            {% if app.user %}
+                                <div class="mb-3">
+                                    Vous êtes connecté en tant que {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Se déconnecter</a>
+                                </div>
+                            {% endif %}
+
+                            <div class="form-outline mb-4">
+                                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" 
+                                    class="form-control" placeholder="Votre email" 
+                                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                    required autofocus>
+                                <div class="invalid-feedback">
+                                    Veuillez saisir une adresse email valide (exemple: nom@domaine.com)
+                                </div>
+                            </div>
+
+                            <div class="form-outline mb-4">
+                                <input type="password" name="password" id="inputPassword" 
+                                    class="form-control" placeholder="Votre mot de passe" 
+                                    minlength="8"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Le mot de passe doit contenir au moins 8 caractères
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                            <div class="checkbox mb-3">
+                                <label>
+                                    <input type="checkbox" name="_remember_me"> Se souvenir de moi
+                                </label>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg btn-block mb-3" type="submit">
+                                Se connecter
+                            </button>
+
+                            <div class="mb-3">
+                                <a href="{{ path('connect_google') }}" class="btn btn-outline-dark btn-lg btn-block">
+                                    <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 20px; margin-right: 10px;">
+                                    Se connecter avec Google
+                                </a>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="mb-3">
+                                <a href="{{ path('app_forgot_password') }}" class="text-primary">Mot de passe oublié ?</a>
+                            </div>
+
+                            <div>
+                                <p class="mb-0">Vous n'avez pas de compte ? <a href="{{ path('app_register') }}" class="text-primary fw-bold">S'inscrire</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Validation des formulaires Bootstrap
+(function () {
+    'use strict'
+    
+    // Récupération du formulaire
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('inputEmail');
+    const passwordInput = document.getElementById('inputPassword');
+
+    // Fonction de validation personnalisée
+    function validateForm(event) {
+        let isValid = true;
+
+        // Validation de l'email
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(emailInput.value)) {
+            emailInput.setCustomValidity('Veuillez entrer une adresse email valide');
+            isValid = false;
+        } else {
+            emailInput.setCustomValidity('');
+        }
+
+        // Validation du mot de passe
+        if (passwordInput.value.length < 8) {
+            passwordInput.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères');
+            isValid = false;
+        } else {
+            passwordInput.setCustomValidity('');
+        }
+
+        if (!isValid) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        loginForm.classList.add('was-validated');
+    }
+
+    // Ajout des écouteurs d'événements
+    loginForm.addEventListener('submit', validateForm);
+
+    // Validation en temps réel
+    emailInput.addEventListener('input', function() {
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(this.value)) {
+            this.setCustomValidity('Veuillez entrer une adresse email valide');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    passwordInput.addEventListener('input', function() {
+        if (this.value.length < 8) {
+            this.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+})()
+</script>
+{% endblock %} 

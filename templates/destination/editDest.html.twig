@@ -1,0 +1,65 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier Destination{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Modifier la Destination</h2>
+
+        <div id="form-container" class="form-container">
+            {{ form_start(form) }}
+
+            <div class="form-group">
+                {{ form_label(form.nomDestination, 'Nom de la Destination') }}
+                {{ form_widget(form.nomDestination, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.nomDestination) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.description, 'Description') }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.imageDestination, 'Image (URL)') }}
+                {{ form_widget(form.imageDestination, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.imageDestination) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.latitude, 'Latitude') }}
+                {{ form_widget(form.latitude, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.latitude) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.longitude, 'Longitude') }}
+                {{ form_widget(form.longitude, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.longitude) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.temperature, 'Température') }}
+                {{ form_widget(form.temperature, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.temperature) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.rate, 'Évaluation (Rate)') }}
+                {{ form_widget(form.rate, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.rate) }}
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ path('list_destination') }}" class="btn btn-success">Afficher les destinations</a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

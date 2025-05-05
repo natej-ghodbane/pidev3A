@@ -1,0 +1,51 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Ajouter un Abonnement{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Ajouter un Abonnement</h2>
+
+        <div id="form-container" class="form-container">
+                {{ form_start(form,{'attr': {'novalidate': 'novalidate'}} ) }}
+
+                <div class="form-group">
+                {{ form_label(form.pack, 'Sélectionner un Pack') }}
+                {{ form_widget(form.pack, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.pack) }}
+                </div>
+
+
+                <div class="form-group">
+                    {{ form_label(form.date_Souscription, 'Date de souscription') }}
+                    {{ form_widget(form.date_Souscription, {'attr': {'class': 'form-control datepicker'}}) }}
+                    {{ form_errors(form.date_Souscription) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.date_Expiration, 'Date d\'expiration') }}
+                    {{ form_widget(form.date_Expiration, {'attr': {'class': 'form-control datepicker'}}) }}
+                    {{ form_errors(form.date_Expiration) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.statut, 'Statut') }}
+                    {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.statut) }}
+                </div>
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ path('list_Abonnement') }}" class="btn btn-success">Afficher les abonnements</a>
+                </div>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+    
+{% endblock %}

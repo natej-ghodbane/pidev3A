@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plan de Voyage{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">🗺️ Votre Plan de Voyage</h1>
+
+        <div class="card">
+            <div class="card-body">
+                {# ✨ Here we use |raw because the text is already parsed to safe HTML #}
+                <div class="plan-content">
+                    {{ plan|raw }}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ path('app_whishlist') }}" class="btn btn-primary">Retour aux favoris</a>
+        </div>
+    </div>
+
+    {# Optional: Small CSS to make the plan prettier #}
+    <style>
+        .plan-content h1, .plan-content h2, .plan-content h3 {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .plan-content p {
+            margin-bottom: 10px;
+        }
+        .plan-content ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+    </style>
+{% endblock %}

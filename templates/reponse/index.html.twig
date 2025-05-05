@@ -1,0 +1,71 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Gestion des Réponses{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Gestion des Réponses</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Réponses</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Liste des Réponses</h5>
+
+                            <table class="table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Contenu</th>
+                                        <th>Date</th>
+                                        <th>Réclamation</th>
+                                        <th>État</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for reponse in reponses %}
+                                    <tr>
+                                        <td>{{ reponse.idRep }}</td>
+                                        <td>{{ reponse.contenu }}</td>
+                                        <td>{{ reponse.dateRep ? reponse.dateRep|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>{{ reponse.reclamation.descriptionRec }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ reponse.reclamation.etatRec == 'En cours' ? 'warning' : (reponse.reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                                {{ reponse.reclamation.etatRec }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ path('app_reponse_show', {'id': reponse.idRep}) }}" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ path('app_reponse_edit', {'id': reponse.idRep}) }}" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">Aucune réponse trouvée</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

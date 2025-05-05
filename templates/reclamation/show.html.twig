@@ -1,0 +1,71 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Détails de la Réclamation{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Détails de la Réclamation</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('reclamationBack') }}">Réclamations</a></li>
+                    <li class="breadcrumb-item active">Détails</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Informations de la Réclamation</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">ID</div>
+                                <div class="col-lg-9 col-md-8">{{ reclamation.idRec }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Date</div>
+                                <div class="col-lg-9 col-md-8">{{ reclamation.dateRec ? reclamation.dateRec|date('d/m/Y H:i') : '' }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Type</div>
+                                <div class="col-lg-9 col-md-8">{{ reclamation.typeRec }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Description</div>
+                                <div class="col-lg-9 col-md-8">{{ reclamation.descriptionRec }}</div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">État</div>
+                                <div class="col-lg-9 col-md-8">
+                                    <span class="badge bg-{{ reclamation.etatRec == 'En cours' ? 'warning' : (reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                        {{ reclamation.etatRec }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <a href="{{ path('reclamationBack') }}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Retour à la liste
+                                </a>
+                                <form method="post" action="{{ path('app_reclamation_delete', {'id_rec': reclamation.idRec}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.idRec) }}">
+                                    <button class="btn btn-danger">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

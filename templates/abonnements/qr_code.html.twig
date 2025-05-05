@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block qr %}{% endblock %}
+
+{% block body %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout - Scan to Pay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 0px;
+        }
+        .qr-container {
+            margin-top: 30px;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Scan to Pay</h1>
+
+    <div class="qr-container">
+        {{ qrCode|raw }}
+    </div>
+
+    <a href="{{ path('pricing') }}" class="btn-back">← Back to Home</a>
+
+</body>
+</html>
+
+{% endblock %}

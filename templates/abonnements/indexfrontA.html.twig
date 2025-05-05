@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<main id="main" class="main">
+    <div class="container">
+        <h1 class="text-right mt-5 mb-2 text-warning">Liste des Packs</h1>
+
+        <div class="row row-cols-1 row-cols-md-3 g-3">
+            {% for pack in packs %}
+                <div class="col">
+                    <div class="card h-70">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ pack.nom_pack }}</h5>
+                            <p class="card-text"><strong>Description :</strong> {{ pack.description }}</p>
+                            <p class="card-text"><strong>Prix :</strong> {{ pack.prix }} TND</p>
+                            <p class="card-text"><strong>Durée :</strong> {{ pack.duree }} jours</p>
+                            <p class="card-text"><strong>Avantages :</strong> {{ pack.avantages }}</p>
+                            <p class="card-text"><strong>Statut :</strong> {{ pack.statut }}</p>
+                        </div>
+                        <div class="card-footer text-right">
+                            <a href="{{ path('show_pack', {'id_pack': pack.id_pack}) }}" class="btn btn-primary ms-auto">
+                                Détails du Pack
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

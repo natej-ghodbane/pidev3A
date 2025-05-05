@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block pricing %}
+<main id="main" class="main">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 text-warning">Liste des Abonnements</h1>
+
+        <div class="row">
+            {% if app.user %}
+                {# User is connected #}
+                {% if abonnements is not empty %}
+                    {% for abonnement in abonnements %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title text-warning">Abonnement #{{ abonnement.getIdAbonnement() }}</h5>
+                                    <p><strong>ID Pack:</strong> {{ abonnement.getIdPack() }}</p>
+                                    <p><strong>Date de Souscription:</strong> {{ abonnement.getDateSouscription()|date('d/m/Y') }}</p>
+                                    <p><strong>Date d'Expiration:</strong> {{ abonnement.getDateExpiration()|date('d/m/Y') }}</p>
+                                    <p><strong>Statut:</strong> {{ abonnement.getStatut() }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ path('edit_Abonnement', { id_abonnement: abonnement.getIdAbonnement() }) }}" class="btn btn-info btn-sm">Buy now</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Aucun abonnement trouvé.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                {# User is NOT connected #}
+                <div class="col-12 text-center">
+                    <p class="text-danger">Veuillez vous connecter pour voir vos abonnements.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</main>
+{% endblock %}

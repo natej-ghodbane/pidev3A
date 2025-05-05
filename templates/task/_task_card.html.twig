@@ -1,0 +1,26 @@
+{# Task Card Template #}
+<div class="task-card {% if task.priority %}priority-{{ task.priority }}{% endif %}"
+     data-id="{{ task.id }}"
+     data-priority="{{ task.priority }}"
+     data-category="{{ task.category }}"
+     data-description="{{ task.description }}">
+    
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <h6 class="task-title mb-0">{{ task.title }}</h6>
+        <span class="badge {% if task.priority == 'high' %}bg-danger{% elseif task.priority == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+            {{ task.priority|capitalize }}
+        </span>
+    </div>
+    
+    {% if task.description %}
+        <p class="text-muted small mb-2">{{ task.description|length > 100 ? task.description|slice(0, 100) ~ '...' : task.description }}</p>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between align-items-end">
+        <div>
+            {% if task.category %}
+                <span class="category-tag">{{ task.category }}</span>
+            {% endif %}
+        </div>
+    </div>
+</div> 

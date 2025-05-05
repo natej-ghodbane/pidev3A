@@ -1,0 +1,86 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+  uploads_directory: '%kernel.project_dir%/public/uploads'
+  profile_pictures_directory: '%kernel.project_dir%/public/uploads/profile_pictures'
+  logos_directory: '%kernel.project_dir%/public/uploads/logos'
+  part_directory: '%kernel.project_dir%/public/uploads/partenaires'
+  #karser_recaptcha3.site_key: '%env(RECAPTCHA3_KEY)%'
+  #karser_recaptcha3.secret_key: '%env(RECAPTCHA3_SECRET)%'
+  #google_recaptcha_site_key: '%env(GOOGLE_RECAPTCHA_SITE_KEY)%'
+  recaptcha_site_key: '%env(EWZ_RECAPTCHA_SITE_KEY)%'
+  twilio_account_sid: '%env(TWILIO_ACCOUNT_SID)%'
+  twilio_auth_token: '%env(TWILIO_AUTH_TOKENN)%'
+  twilio_phone_number: '%env(TWILIO_PHONE_NUMBER)%'
+  twilio_sid_user2: '%env(TWILIO_SID_USER2)%'
+  twilio_auth_token_user2: '%env(TWILIO_AUTH_TOKEN_USER2)%'
+  twilio_phone_number_user2: '%env(TWILIO_WHATSAPP_FROM_USER2)%'
+twig:
+  globals:
+    recaptcha_site_key: '%recaptcha_site_key%'
+
+
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    bind:
+      $uploadsDirectory: '%uploads_directory%'
+      $profilePicturesDirectory: '%profile_pictures_directory%'
+      $logosDirectory: '%logos_directory%'
+      $stripeSK: "%env(STRIPE_SK)%"
+      string $sid: '%env(TWILIO_SIDD)%'
+      string $sid2: '%env(TWILIO_SID)%'
+      string $token: '%env(TWILIO_AUTH_TOKENN)%'
+      string $from: '%env(TWILIO_WHATSAPP_NUMBER)%'
+
+  App\Service\WhatsAppService:
+    arguments:
+      $sid: '%env(TWILIO_SIDD)%'
+      $token: '%env(TWILIO_AUTH_TOKENN)%'
+      $from: '%env(TWILIO_WHATSAPP_NUMBER)%'
+
+    # (le reste continue normalement ici)
+
+
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+  App\:
+      resource: '../src/'
+      exclude:
+          - '../src/DependencyInjection/'
+          - '../src/Entity/'
+          - '../src/Kernel.php'
+
+  App\Service\GeminiPart: ~ # ton service existant Gemini
+
+  App\EventListener\LoginSuccessListener:
+    tags:
+      - { name: kernel.event_listener, event: security.authentication.success, method: onLoginSuccess }
+
+  App\EventListener\LogoutSuccessListener:
+    tags:
+      - { name: kernel.event_listener, event: Symfony\Component\Security\Http\Event\LogoutEvent, method: onLogoutSuccess }
+
+  App\Twig\AppExtension:
+    tags: [ 'twig.extension' ]
+
+  App\Service\TwilioService:
+    arguments:
+      $sid: '%env(TWILIO_SID)%'
+      $token: '%env(TWILIO_TOKEN)%'
+      $from: '%env(TWILIO_FROM)%'
+
+  App\Service\TestTwilioCommand:
+    public: true
+
+
+    # config/services.yaml
+  App\Service\StatistiqueMissionService: ~
+
+

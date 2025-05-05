@@ -1,0 +1,234 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription - TrekSwap{% endblock %}
+
+{% block body %}
+<section class="vh-70">
+    <div class="container py-5">
+        <div class="row d-flex justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg" style="border-radius: 1rem;" id="registration-form">
+                    <div class="card-body p-5 text-center">
+                        {% for label, messages in app.flashes %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+
+                        {{ form_start(registrationForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate', 'enctype': 'multipart/form-data', 'id': 'registerForm'}}) }}
+                            <h3 class="mb-5">Créer un compte</h3>
+
+                            <div class="form-group mb-3">
+                                {{ form_label(registrationForm.nom, 'Nom', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(registrationForm.nom, {'attr': {
+                                    'class': 'form-control',
+                                    'required': true,
+                                    'pattern': '^[A-Za-zÀ-ÿ\\-\'\\s]{2,50}$',
+                                    'minlength': '2',
+                                    'maxlength': '50'
+                                }}) }}
+                                <div class="invalid-feedback">
+                                    Le nom doit contenir entre 2 et 50 caractères et ne peut contenir que des lettres, tirets et apostrophes
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                {{ form_label(registrationForm.prenom, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(registrationForm.prenom, {'attr': {
+                                    'class': 'form-control',
+                                    'required': true,
+                                    'pattern': '^[A-Za-zÀ-ÿ\\-\'\\s]{2,50}$',
+                                    'minlength': '2',
+                                    'maxlength': '50'
+                                }}) }}
+                                <div class="invalid-feedback">
+                                    Le prénom doit contenir entre 2 et 50 caractères et ne peut contenir que des lettres, tirets et apostrophes
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(registrationForm.email, {'attr': {
+                                    'class': 'form-control',
+                                    'required': true,
+                                    'pattern': '[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$'
+                                }}) }}
+                                <div class="invalid-feedback">
+                                    Veuillez saisir une adresse email valide (exemple: nom@domaine.com)
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                {{ form_label(registrationForm.plainPassword, 'Mot de passe', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(registrationForm.plainPassword, {'attr': {
+                                    'class': 'form-control',
+                                    'required': true,
+                                    'minlength': '8',
+                                    'pattern': '^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{8,}$'
+                                }}) }}
+                                <div class="invalid-feedback">
+                                    Le mot de passe doit contenir au moins 8 caractères, incluant au moins une lettre et un chiffre
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                {{ form_label(registrationForm.photo_profil, 'Photo de profil (Optionnel)', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(registrationForm.photo_profil, {'attr': {
+                                    'class': 'form-control',
+                                    'accept': 'image/*'
+                                }}) }}
+                                <div class="invalid-feedback">
+                                    Veuillez sélectionner une image valide (JPG, PNG, GIF)
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg btn-block" type="submit">S'inscrire</button>
+
+                            <hr class="my-4">
+
+                            <div>
+                                <p class="mb-0">Vous avez déjà un compte ? <a href="{{ path('app_login') }}" class="text-primary fw-bold">Se connecter</a></p>
+                            </div>
+                        {{ form_end(registrationForm) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Fonction pour faire défiler la page
+function scrollToForm() {
+    const formElement = document.getElementById('registration-form');
+    if (formElement) {
+        const offset = 100;
+        const elementPosition = formElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+setTimeout(scrollToForm, 500);
+
+(function () {
+    'use strict'
+    
+    const registerForm = document.getElementById('registerForm');
+    const inputs = registerForm.querySelectorAll('input');
+
+    // Fonction de validation personnalisée
+    function validateForm(event) {
+        let isValid = true;
+
+        // Validation du nom et prénom
+        const namePattern = /^[A-Za-zÀ-ÿ\-'\s]{2,50}$/;
+        const nomInput = registerForm.querySelector('[name="registration_form[nom]"]');
+        const prenomInput = registerForm.querySelector('[name="registration_form[prenom]"]');
+
+        if (!namePattern.test(nomInput.value)) {
+            nomInput.setCustomValidity('Le nom doit contenir entre 2 et 50 caractères et ne peut contenir que des lettres');
+            isValid = false;
+        } else {
+            nomInput.setCustomValidity('');
+        }
+
+        if (!namePattern.test(prenomInput.value)) {
+            prenomInput.setCustomValidity('Le prénom doit contenir entre 2 et 50 caractères et ne peut contenir que des lettres');
+            isValid = false;
+        } else {
+            prenomInput.setCustomValidity('');
+        }
+
+        // Validation de l'email
+        const emailInput = registerForm.querySelector('[name="registration_form[email]"]');
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        
+        if (!emailPattern.test(emailInput.value)) {
+            emailInput.setCustomValidity('Veuillez entrer une adresse email valide');
+            isValid = false;
+        } else {
+            emailInput.setCustomValidity('');
+        }
+
+        // Validation du mot de passe
+        const passwordInput = registerForm.querySelector('[name="registration_form[plainPassword]"]');
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+        
+        if (!passwordPattern.test(passwordInput.value)) {
+            passwordInput.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères, incluant au moins une lettre et un chiffre');
+            isValid = false;
+        } else {
+            passwordInput.setCustomValidity('');
+        }
+
+        // Validation de la photo de profil
+        const photoInput = registerForm.querySelector('[name="registration_form[photo_profil]"]');
+        if (photoInput.files.length > 0) {
+            const file = photoInput.files[0];
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            
+            if (!validTypes.includes(file.type)) {
+                photoInput.setCustomValidity('Veuillez sélectionner une image valide (JPG, PNG, GIF)');
+                isValid = false;
+            } else if (file.size > 5 * 1024 * 1024) { // 5MB max
+                photoInput.setCustomValidity('La taille de l\'image ne doit pas dépasser 5MB');
+                isValid = false;
+            } else {
+                photoInput.setCustomValidity('');
+            }
+        }
+
+        if (!isValid) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        registerForm.classList.add('was-validated');
+    }
+
+    // Ajout des écouteurs d'événements
+    registerForm.addEventListener('submit', validateForm);
+
+    // Validation en temps réel pour chaque champ
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            // Réinitialiser la validation
+            this.setCustomValidity('');
+            
+            // Valider selon le type de champ
+            switch(this.name) {
+                case 'registration_form[nom]':
+                case 'registration_form[prenom]':
+                    const namePattern = /^[A-Za-zÀ-ÿ\-'\s]{2,50}$/;
+                    if (!namePattern.test(this.value)) {
+                        this.setCustomValidity('Doit contenir entre 2 et 50 caractères et uniquement des lettres');
+                    }
+                    break;
+                    
+                case 'registration_form[email]':
+                    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailPattern.test(this.value)) {
+                        this.setCustomValidity('Veuillez entrer une adresse email valide');
+                    }
+                    break;
+                    
+                case 'registration_form[plainPassword]':
+                    const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+                    if (!passwordPattern.test(this.value)) {
+                        this.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères, incluant au moins une lettre et un chiffre');
+                    }
+                    break;
+            }
+        });
+    });
+})()
+</script>
+{% endblock %} 

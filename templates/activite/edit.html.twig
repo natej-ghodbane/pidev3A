@@ -1,0 +1,54 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier une Activité{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Modifier une Activité</h2>
+
+        <div id="form-container" class="form-container">
+            {{ form_start(form) }}
+
+            <div class="form-group">
+                {{ form_label(form.nom_activite, 'Nom de l\'Activité') }}
+                {{ form_widget(form.nom_activite, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.nom_activite) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.date, 'Date de l\'Activité') }}
+                {{ form_widget(form.date, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.date) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.heure, 'Heure de l\'Activité') }}
+                {{ form_widget(form.heure, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.heure) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.statut, 'Statut') }}
+                {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.statut) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.id_destination, 'Destination') }}
+                {{ form_widget(form.id_destination, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.id_destination) }}
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ path('list_activite') }}" class="btn btn-success">Afficher les Activités</a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+{% endblock %}

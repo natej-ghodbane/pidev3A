@@ -1,0 +1,316 @@
+{% set messages = messages|default([]) %}
+{% set documents_loaded = documents_loaded|default(false) %}
+
+{% block stylesheets %}
+<style>
+    .chat-container {
+        height: 65vh;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+    
+    .chat-input-container {
+        display: flex;
+        padding: 10px;
+        background-color: #fff;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        outline: none;
+    }
+    
+    .send-button {
+        margin-left: 10px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        background-color: #4c6ef5;
+        color: white;
+        cursor: pointer;
+    }
+    
+    .message {
+        margin-bottom: 15px;
+        max-width: 80%;
+    }
+    
+    .message-user {
+        margin-left: auto;
+        background-color: #4c6ef5;
+        color: white;
+        border-radius: 18px 18px 0 18px;
+        padding: 10px 15px;
+    }
+    
+    .message-assistant {
+        margin-right: auto;
+        background-color: #e9ecef;
+        color: #212529;
+        border-radius: 18px 18px 18px 0;
+        padding: 10px 15px;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 5px;
+        text-align: right;
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .chat-toggle-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #4c6ef5;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        border: none;
+    }
+
+    .chat-widget {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 350px;
+        height: 500px;
+        z-index: 1000;
+        display: none;
+    }
+
+    .chat-widget.active {
+        display: block;
+    }
+
+    .chat-header {
+        background-color: #4c6ef5;
+        color: white;
+        padding: 15px;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header h5 {
+        margin: 0;
+    }
+
+    .close-chat {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+<button class="chat-toggle-btn" id="chatToggleBtn">
+    <i class="bi bi-chat-dots"></i>
+</button>
+
+<div class="chat-widget" id="chatWidget">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h5>RAG Chatbot</h5>
+            <button class="close-chat" id="closeChatBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            {% if messages is empty %}
+                <div class="text-center text-muted py-5">
+                    <p>Start a conversation with your documents</p>
+                    {% if not documents_loaded %}
+                        <p class="text-danger">Please upload PDF documents first</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                {% for message in messages %}
+                    <div class="message message-{{ message.role }}">
+                        {{ message.content|nl2br }}
+                        <div class="message-time">
+                            {{ message.timestamp|date('H:i:s') }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="messageInput" placeholder="Type your message..." {% if not documents_loaded %}disabled{% endif %}>
+            <button class="send-button" id="sendButton" {% if not documents_loaded %}disabled{% endif %}>
+                <span id="sendText">Send</span>
+                <div id="loadingSpinner" class="loading-spinner"></div>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatWidget = document.getElementById('chatWidget');
+        const chatToggleBtn = document.getElementById('chatToggleBtn');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const sendText = document.getElementById('sendText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        // Toggle chat widget
+        chatToggleBtn.addEventListener('click', function() {
+            chatWidget.classList.toggle('active');
+            if (chatWidget.classList.contains('active')) {
+                // Load initial messages when opening
+                fetch('{{ path('app_chatbot') }}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newMessages = doc.querySelector('#chatMessages');
+                    if (newMessages) {
+                        chatMessages.innerHTML = newMessages.innerHTML;
+                        scrollToBottom();
+                    }
+                });
+            }
+        });
+
+        closeChatBtn.addEventListener('click', function() {
+            chatWidget.classList.remove('active');
+        });
+
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add a new message to the chat
+        function addMessage(message, isUser = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${isUser ? 'user' : 'assistant'}`;
+            messageDiv.innerHTML = message.content.replace(/\n/g, '<br>');
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Show loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                sendText.style.display = 'none';
+                loadingSpinner.style.display = 'block';
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+            } else {
+                sendText.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+            }
+        }
+        
+        // Send a message
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to UI
+            addMessage({ content: message }, true);
+            messageInput.value = '';
+            
+            // Show loading state
+            setLoading(true);
+            
+            // Send to backend
+            fetch('{{ path('app_chatbot_send') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading state
+                setLoading(false);
+                
+                if (data.success) {
+                    // Add assistant message to UI
+                    addMessage(data.message, false);
+                } else {
+                    // Show error
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                setLoading(false);
+                alert('Error: ' + error.message);
+            });
+        }
+        
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Auto-scroll to bottom on load
+        scrollToBottom();
+    });
+</script>
+{% endblock %} 

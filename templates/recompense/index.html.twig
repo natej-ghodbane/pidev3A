@@ -1,0 +1,101 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Liste des Récompenses{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Liste des Récompenses</h1>
+
+            <!-- Container for better layout -->
+            <div class="card shadow-lg p-4 rounded-lg custom-bg-light">
+                <div class="card-body">
+                    <!-- Table with improved colors and layout -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered table-striped text-center align-middle custom-table-bg">
+                            <thead class="bg-info text-white">
+                            <tr>
+                                <th class="custom-th">ID</th>
+                                <th class="custom-th">Description</th>
+                                <th class="custom-th">Coût en points</th>
+                                <th class="custom-th">Disponibilité</th>
+                                <th class="custom-th">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for recompense in recompenses %}
+                                <tr>
+                                    <td class="text-muted">{{ recompense.id }}</td>
+                                    <td>{{ recompense.description }}</td>
+                                    <td>
+                                        <span>{{ recompense.coutEnPoints }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if recompense.disponibilite == 'disponible' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if recompense.disponibilite == 'disponible' %}Disponible{% else %}Indisponible{% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <!-- Button group with icons -->
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ path('app_recompense_edit', { id: recompense.id }) }}" class="btn btn-outline-primary btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                            <a href="{{ path('app_recompense_delete', { id: recompense.id }) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette récompense ?');" title="Supprimer">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Aucune récompense trouvée.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Button to add a new reward -->
+                    <div class="text-center mt-4">
+                        <a href="{{ path('app_recompense_new') }}" class="btn btn-success px-4 py-2">
+                            <i class="bi bi-plus-circle-dotted"></i> Ajouter une Récompense
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        /* Applique une couleur de fond gris clair à la carte */
+        .custom-bg-light {
+            background-color: #e9ecef !important; /* Gris clair pour le fond */
+        }
+
+        /* Applique une couleur gris clair au fond du tableau */
+        .custom-table-bg {
+            background-color: #f4f6f9 !important; /* Gris clair légèrement plus foncé */
+        }
+
+        /* Amélioration de l'ombre de la carte pour un effet plus moderne */
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Applique une couleur personnalisée pour les titres des colonnes */
+        .custom-th {
+            background-color: #cce5ff; /* Bleu clair */
+            color: #0056b3; /* Couleur du texte (bleu foncé) */
+            font-weight: bold;
+        }
+
+        /* Applique un effet de survol pour les lignes du tableau */
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1 !important; /* Gris clair pour l'effet de survol */
+        }
+    </style>
+{% endblock %}

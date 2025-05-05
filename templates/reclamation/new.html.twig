@@ -1,0 +1,184 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle Réclamation{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+
+        <!-- Formulaire de réclamation -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header" style="background-color: #012970; color: white;">
+                <h2 class="text-center mb-0">
+                    <i class="fas fa-comment-alt me-2"></i>Nouvelle Réclamation
+                </h2>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                <div class="mb-4">
+                    {{ form_label(form.typeRec, 'Type de réclamation', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.typeRec, {'attr': {'class': 'form-control form-control-lg'}}) }}
+                    {{ form_errors(form.typeRec) }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.descriptionRec, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.descriptionRec, {'attr': {'class': 'form-control form-control-lg', 'rows': '5', 'placeholder': 'Décrivez votre réclamation en détail...'}}) }}
+                    {{ form_errors(form.descriptionRec) }}
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5" style="background-color: #012970; border-color: #012970;">
+                        <i class="fas fa-paper-plane me-2"></i>Envoyer la réclamation
+                    </button>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <!-- Bouton pour afficher/masquer les réclamations -->
+        <div class="text-center mb-3">
+            <button id="toggleReclamations" class="btn btn-primary" style="background-color: #012970; border-color: #012970;">
+                <i class="fas fa-list me-2"></i>Afficher mes réclamations
+            </button>
+        </div>
+
+        <!-- Liste des réclamations -->
+        <div id="reclamationsList" class="card shadow-sm" style="display: none;">
+            <div class="card-header" style="background-color: #012970; color: white;">
+                <h2 class="text-center mb-0">
+                    <i class="fas fa-list me-2"></i>Mes Réclamations
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-tag me-2"></i>Type</th>
+                            <th><i class="fas fa-align-left me-2"></i>Description</th>
+                            <th><i class="fas fa-calendar me-2"></i>Date</th>
+                            <th><i class="fas fa-info-circle me-2"></i>État</th>
+                            <th><i class="fas fa-reply me-2"></i>Réponses</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for reclamation in reclamations %}
+                            <tr>
+                                <td class="fw-bold">{{ reclamation.typeRec }}</td>
+                                <td class="text-truncate" style="max-width: 200px;" title="{{ reclamation.descriptionRec }}">
+                                    {{ reclamation.descriptionRec }}
+                                </td>
+                                <td>{{ reclamation.dateRec ? reclamation.dateRec|date('d/m/Y H:i') : '' }}</td>
+                                <td>
+                                    <span class="badge rounded-pill" style="background-color: {{ reclamation.etatRec == 'En cours' ? '#ffc107' : (reclamation.etatRec == 'Résolue' ? '#198754' : '#dc3545') }}; color: white;">
+                                        <i class="fas fa-{{ reclamation.etatRec == 'En cours' ? 'clock' : (reclamation.etatRec == 'Résolue' ? 'check' : 'times') }} me-1"></i>
+                                        {{ reclamation.etatRec }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info toggle-responses" data-reclamation-id="{{ reclamation.idRec }}" data-count="{{ reclamation.reponses|length }}">
+                                        <i class="fas fa-comments me-1"></i>{{ reclamation.reponses|length }} réponse(s)
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="responses-row" data-reclamation-id="{{ reclamation.idRec }}" style="display: none;">
+                                <td colspan="5">
+                                    <div class="responses-container">
+                                        {% if reclamation.reponses|length > 0 %}
+                                            {% for reponse in reclamation.reponses %}
+                                                <div class="response-item mb-3">
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-clock me-1"></i>{{ reponse.dateRep|date('d/m/Y H:i') }}
+                                                                </small>
+                                                            </div>
+                                                            <p class="mb-0">{{ reponse.contenu }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-info-circle me-2"></i>Aucune réponse pour cette réclamation
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="alert alert-info mb-0" style="background-color: #e7f1ff; color: #012970; border-color: #b8daff;">
+                                        <i class="fas fa-info-circle me-2"></i>Aucune réclamation trouvée
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS Styles -->
+    <style>
+        .card { border: none; border-radius: 10px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card-header { border-radius: 10px 10px 0 0 !important; }
+        .table th { font-weight: 600; color: #012970; }
+        .badge { font-size: 0.9em; padding: 0.5em 1em; }
+        .form-control:focus { border-color: #012970; box-shadow: 0 0 0 0.2rem rgba(1, 41, 112, 0.25); }
+        .btn-primary { background-color: #012970; border-color: #012970; }
+        .btn-primary:hover { background-color: #011d57; border-color: #011d57; }
+        #reclamationsList { opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s ease; }
+        #reclamationsList.show { opacity: 1; transform: translateY(0); }
+        .responses-container { padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
+        .response-item .card { background-color: white; border: 1px solid #e9ecef; }
+        .response-item .card-body { padding: 1rem; }
+        .toggle-responses { background-color: #0dcaf0; border-color: #0dcaf0; color: white; }
+        .toggle-responses:hover { background-color: #0bb6d4; border-color: #0bb6d4; }
+    </style>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('toggleReclamations');
+            const reclamationsList = document.getElementById('reclamationsList');
+            let isVisible = false;
+
+            toggleButton.addEventListener('click', function() {
+                if (isVisible) {
+                    reclamationsList.style.display = 'none';
+                    reclamationsList.classList.remove('show');
+                    toggleButton.innerHTML = '<i class="fas fa-list me-2"></i>Afficher mes réclamations';
+                } else {
+                    reclamationsList.style.display = 'block';
+                    setTimeout(() => {
+                        reclamationsList.classList.add('show');
+                    }, 10);
+                    toggleButton.innerHTML = '<i class="fas fa-times me-2"></i>Masquer mes réclamations';
+                }
+                isVisible = !isVisible;
+            });
+
+            document.querySelectorAll('.toggle-responses').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reclamationId = this.getAttribute('data-reclamation-id');
+                    const responsesRow = document.querySelector(`.responses-row[data-reclamation-id="${reclamationId}"]`);
+
+                    if (responsesRow.style.display === 'none') {
+                        responsesRow.style.display = 'table-row';
+                        this.innerHTML = '<i class="fas fa-times me-1"></i>Masquer les réponses';
+                    } else {
+                        responsesRow.style.display = 'none';
+                        const count = this.getAttribute('data-count') || '0';
+                        this.innerHTML = '<i class="fas fa-comments me-1"></i>' + count + ' réponse(s)';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

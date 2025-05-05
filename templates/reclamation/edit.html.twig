@@ -1,0 +1,61 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier la Réclamation{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Modifier la Réclamation</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('reclamationBack') }}">Réclamations</a></li>
+                    <li class="breadcrumb-item active">Modifier</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Modifier les informations de la réclamation</h5>
+
+                            {{ form_start(form) }}
+                                <div class="row mb-3">
+                                    <div class="col-lg-3 col-md-4 label">Type</div>
+                                    <div class="col-lg-9 col-md-8">
+                                        {{ form_widget(form.typeRec, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_errors(form.typeRec) }}
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-lg-3 col-md-4 label">Description</div>
+                                    <div class="col-lg-9 col-md-8">
+                                        {{ form_widget(form.descriptionRec, {'attr': {'class': 'form-control', 'rows': '5'}}) }}
+                                        {{ form_errors(form.descriptionRec) }}
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-lg-3 col-md-4 label">État</div>
+                                    <div class="col-lg-9 col-md-8">
+                                        {{ form_widget(form.etatRec, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_errors(form.etatRec) }}
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                    <a href="{{ path('reclamationBack') }}" class="btn btn-secondary">Annuler</a>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

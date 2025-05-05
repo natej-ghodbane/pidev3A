@@ -1,0 +1,480 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Gestion des réponses{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.css" rel="stylesheet">
+    <style>
+        .sort-link {
+            color: inherit;
+            text-decoration: none;
+        }
+        .sort-link:hover {
+            text-decoration: underline;
+        }
+        .sort-icon {
+            margin-left: 5px;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Gestion des réponses</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Réponses</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card info-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Réponses</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-chat-dots"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ stats.total }}</h6>
+                                    <span class="text-muted small pt-1">Ce mois: {{ stats.moisActuel }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="card info-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Moyenne par réclamation</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-info">
+                                    <i class="bi bi-graph-up text-white"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ stats.moyenneReponseParReclamation }}</h6>
+                                    <span class="text-info small pt-1">réponses/réclamation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Temps de réponse moyen (heures)</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>État</th>
+                                            <th>Temps moyen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for etat, temps in stats.tempsReponseParEtat %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-{{ etat == 'En cours' ? 'warning' : (etat == 'Résolue' ? 'success' : 'danger') }}">
+                                                        {{ etat }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ temps }} h</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total des Réponses</h5>
+                            <div class="chart-container">
+                                <canvas id="totalChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Moyenne par réclamation</h5>
+                            <div class="chart-container">
+                                <canvas id="moyenneChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Temps de réponse moyen par état (heures)</h5>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="tempsReponseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Évolution mensuelle des réponses</h5>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="evolutionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Filtres</h5>
+                            <form method="get" class="filter-form">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="reclamation" class="form-label">Réclamation</label>
+                                        <select name="reclamation" id="reclamation" class="form-select">
+                                            <option value="">Toutes les réclamations</option>
+                                            {% for reclamation in reclamations %}
+                                                <option value="{{ reclamation.idRec }}" {% if currentReclamation == reclamation.idRec %}selected{% endif %}>
+                                                    {{ reclamation.descriptionRec|slice(0, 50) }}...
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="search" class="form-label">Recherche</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="search" name="search" value="{{ searchQuery }}" placeholder="Rechercher dans le contenu ou la réclamation...">
+                                            <button class="btn btn-outline-secondary" type="submit">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                                        <a href="{{ path('app_reponse_back') }}" class="btn btn-secondary">Réinitialiser</a>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title">Liste des réponses</h5>
+                                <div>
+                                    <a href="{{ path('generateReponsesPDF') }}" class="btn btn-primary me-2">
+                                        <i class="bi bi-file-pdf"></i> Générer PDF
+                                    </a>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reclamationsModal">
+                                        <i class="bi bi-plus-circle"></i> Répondre à une réclamation
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <a href="{{ path('app_reponse_back', app.request.query.all|merge({
+                                                    'sort': 'reclamation',
+                                                    'direction': currentSort == 'reclamation' and currentDirection == 'ASC' ? 'DESC' : 'ASC'
+                                                })) }}" class="sort-link">
+                                                    Réclamation
+                                                    {% if currentSort == 'reclamation' %}
+                                                        <i class="bi bi-arrow-{{ currentDirection == 'ASC' ? 'up' : 'down' }} sort-icon"></i>
+                                                    {% endif %}
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="{{ path('app_reponse_back', app.request.query.all|merge({
+                                                    'sort': 'dateRep',
+                                                    'direction': currentSort == 'dateRep' and currentDirection == 'ASC' ? 'DESC' : 'ASC'
+                                                })) }}" class="sort-link">
+                                                    Date
+                                                    {% if currentSort == 'dateRep' %}
+                                                        <i class="bi bi-arrow-{{ currentDirection == 'ASC' ? 'up' : 'down' }} sort-icon"></i>
+                                                    {% endif %}
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="{{ path('app_reponse_back', app.request.query.all|merge({
+                                                    'sort': 'contenu',
+                                                    'direction': currentSort == 'contenu' and currentDirection == 'ASC' ? 'DESC' : 'ASC'
+                                                })) }}" class="sort-link">
+                                                    Contenu
+                                                    {% if currentSort == 'contenu' %}
+                                                        <i class="bi bi-arrow-{{ currentDirection == 'ASC' ? 'up' : 'down' }} sort-icon"></i>
+                                                    {% endif %}
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="{{ path('app_reponse_back', app.request.query.all|merge({
+                                                    'sort': 'reclamation.etatRec',
+                                                    'direction': currentSort == 'reclamation.etatRec' and currentDirection == 'ASC' ? 'DESC' : 'ASC'
+                                                })) }}" class="sort-link">
+                                                    État Réclamation
+                                                    {% if currentSort == 'reclamation.etatRec' %}
+                                                        <i class="bi bi-arrow-{{ currentDirection == 'ASC' ? 'up' : 'down' }} sort-icon"></i>
+                                                    {% endif %}
+                                                </a>
+                                            </th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for reponse in reponses %}
+                                            <tr>
+                                                <td>{{ reponse.reclamation.descriptionRec }}</td>
+                                                <td>{{ reponse.dateRep ? reponse.dateRep|date('Y-m-d H:i:s') : '' }}</td>
+                                                <td>{{ reponse.contenu }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ reponse.reclamation.etatRec == 'En cours' ? 'warning' : (reponse.reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                                        {{ reponse.reclamation.etatRec }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ path('app_reponse_show', {'id': reponse.id}) }}" class="btn btn-info btn-sm" title="Voir">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        <a href="{{ path('app_reponse_edit', {'id': reponse.id}) }}" class="btn btn-warning btn-sm" title="Modifier">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <form method="post" action="{{ path('app_reponse_delete', {'id': reponse.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?');" style="display: inline;">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                                            <button class="btn btn-danger btn-sm" title="Supprimer">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="text-center">Aucune réponse trouvée</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal fade" id="reclamationsModal" tabindex="-1" aria-labelledby="reclamationsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reclamationsModalLabel">Sélectionner une réclamation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>État</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reclamation in reclamations %}
+                                    <tr>
+                                        <td>{{ reclamation.descriptionRec }}</td>
+                                        <td>{{ reclamation.dateRec ? reclamation.dateRec|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ reclamation.etatRec == 'En cours' ? 'warning' : (reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                                {{ reclamation.etatRec }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('app_reponse_new', {'id': reclamation.idRec}) }}" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-reply"></i> Répondre
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">Aucune réclamation trouvée</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('backTemp/vendor/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Total des réponses
+            new Chart(document.getElementById('totalChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ce mois', 'Autres mois'],
+                    datasets: [{
+                        data: [{{ stats.moisActuel }}, {{ stats.total - stats.moisActuel }}],
+                        backgroundColor: ['#4e73df', '#1cc88a']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Moyenne par réclamation
+            new Chart(document.getElementById('moyenneChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Moyenne de réponses par réclamation'],
+                    datasets: [{
+                        label: 'Nombre moyen',
+                        data: [{{ stats.moyenneReponseParReclamation }}],
+                        backgroundColor: '#ff6384',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max(5, Math.ceil({{ stats.moyenneReponseParReclamation }}))
+                        }
+                    }
+                }
+            });
+
+            // Temps de réponse par état
+            const tempsReponseData = {
+                labels: [],
+                values: []
+            };
+            {% for etat, temps in stats.tempsReponseParEtat %}
+                tempsReponseData.labels.push("{{ etat }}");
+                tempsReponseData.values.push({{ temps }});
+            {% endfor %}
+
+            new Chart(document.getElementById('tempsReponseChart'), {
+                type: 'bar',
+                data: {
+                    labels: tempsReponseData.labels,
+                    datasets: [{
+                        label: 'Temps moyen (heures)',
+                        data: tempsReponseData.values,
+                        backgroundColor: ['#36b9cc', '#1cc88a', '#e74a3b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Évolution mensuelle
+            const evolutionData = {
+                labels: [],
+                values: []
+            };
+            {% for mois, nombre in stats.parMois %}
+                evolutionData.labels.push("{{ mois }}");
+                evolutionData.values.push({{ nombre }});
+            {% endfor %}
+
+            new Chart(document.getElementById('evolutionChart'), {
+                type: 'line',
+                data: {
+                    labels: evolutionData.labels,
+                    datasets: [{
+                        label: 'Nombre de réponses',
+                        data: evolutionData.values,
+                        borderColor: '#4e73df',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Initialize datatables
+            const datatables = document.querySelectorAll('.datatable');
+            datatables.forEach(function(datatable) {
+                new DataTable(datatable);
+            });
+        });
+    </script>
+{% endblock %}

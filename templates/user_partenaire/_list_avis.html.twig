@@ -1,0 +1,25 @@
+{% if avis is empty %}
+    <p class="text-muted text-center my-3">Aucun avis pour ce partenaire.</p>
+{% else %}
+    <ul class="list-group">
+        {% for opinion in avis %}
+            <li class="list-group-item mb-3 p-3 rounded shadow-sm d-flex align-items-start" style="background-color: #f8f9fa;">
+                <div class="me-3">
+                    {% if opinion.user.photoProfile %}
+                        <img src="{{ asset('uploads/profile_pictures/' ~ opinion.user.photoProfile) }}" alt="Photo de profil" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                        <img src="{{ asset('backTemp/img/profile-img.jpg') }}" alt="Photo par défaut" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <div>
+                    <strong style="color: #007bff; font-size: 1.1rem;">
+                        {{ opinion.user.nom }} {{ opinion.user.prenom }} :
+                    </strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.95rem; color: #333;">
+                        {{ opinion.commentaire }}
+                    </p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

@@ -1,0 +1,45 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Ajouter une Mission{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-warning">Ajouter une Nouvelle Mission</h1>
+
+            {{ form_start(form,{'attr':{'novalidate':'novalidate'}})}}
+
+
+            <div class="mb-3">
+                {{ form_label(form.description) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Description de la mission'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.points_recompense) }}
+                {{ form_widget(form.points_recompense, {'attr': {'class': 'form-control', 'placeholder': 'Points de récompense'}}) }}
+                {{ form_errors(form.points_recompense) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.statut) }}
+                {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.statut) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.id_recompense, "Recompense") }}
+                {{ form_widget(form.id_recompense, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.id_recompense) }}
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success">Ajouter la Mission</button>
+                <a href="{{ path('app_mission_index') }}" class="btn btn-secondary ms-3">Retour à la liste</a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </main>
+{% endblock %}

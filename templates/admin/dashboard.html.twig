@@ -1,0 +1,200 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord administrateur{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .search-result-item:hover {
+            background-color: #f5f5f5;
+        }
+        .search-result-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .search-result-item .user-info {
+            flex: 1;
+        }
+        .search-result-item .user-info .name {
+            font-weight: bold;
+        }
+        .search-result-item .user-info .email {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: yellow;
+            padding: 0 2px;
+        }
+        .loading {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Tableau de bord administrateur</h1>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="search-container">
+                    <input type="text" 
+                           id="userSearch" 
+                           class="form-control" 
+                           placeholder="Rechercher un utilisateur..."
+                           autocomplete="off">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Statistiques</h5>
+                        <p class="card-text">Nombre total d'utilisateurs : {{ totalUsers }}</p>
+                        <p class="card-text">Nombre d'utilisateurs actifs : {{ activeUsers }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h2>Derniers utilisateurs inscrits</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Email</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Type</th>
+                            <th>Date d'inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recentUsers %}
+                            <tr>
+                                <td>
+                                    {% if user.photoProfile %}
+                                        <img src="{{ asset('uploads/profile_pictures/' ~ user.photoProfile) }}" 
+                                             alt="Photo de profil" 
+                                             style="width: 50px; height: 50px; border-radius: 50%;">
+                                    {% else %}
+                                        <img src="{{ asset('images/default-profile.png') }}" 
+                                             alt="Photo de profil par défaut" 
+                                             style="width: 50px; height: 50px; border-radius: 50%;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.nom }}</td>
+                                <td>{{ user.prenom }}</td>
+                                <td>{{ user.typeUser }}</td>
+                                <td>{{ user.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                                    <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('userSearch');
+            const searchResults = document.getElementById('searchResults');
+            let timeout = null;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                searchResults.innerHTML = '<div class="loading">Recherche en cours...</div>';
+                searchResults.style.display = 'block';
+
+                timeout = setTimeout(() => {
+                    fetch(`/user/search?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(users => {
+                            if (users.length === 0) {
+                                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
+                                return;
+                            }
+
+                            searchResults.innerHTML = users.map(user => `
+                                <div class="search-result-item" onclick="window.location.href='/user/${user.id}'">
+                                    <img src="${user.photoProfile ? '/uploads/profile_pictures/' + user.photoProfile : '/images/default-profile.png'}" 
+                                         alt="Photo de profil">
+                                    <div class="user-info">
+                                        <div class="name">${highlightMatch(user.prenom + ' ' + user.nom, query)}</div>
+                                        <div class="email">${highlightMatch(user.email, query)}</div>
+                                        <div class="type">${user.typeUser}</div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        })
+                        .catch(error => {
+                            searchResults.innerHTML = '<div class="search-result-item">Une erreur est survenue</div>';
+                            console.error('Error:', error);
+                        });
+                }, 300);
+            });
+
+            // Fermer les résultats quand on clique ailleurs
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+
+            function highlightMatch(text, query) {
+                if (!query) return text;
+                const regex = new RegExp(`(${query})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            }
+        });
+    </script>
+{% endblock %} 

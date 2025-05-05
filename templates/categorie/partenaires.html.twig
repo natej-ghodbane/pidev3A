@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% endblock %}
+
+{% block welcome %}
+    <section class="welcome-banner" style="padding: 3rem 1rem; text-align: center; background: transparent; border-bottom: none;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #ffffff;">🤝 Nos Partenaires</h1>
+        <p style="font-size: 1.2rem; color: #ffffff;">Découvrez les partenaires associés à la catégorie <strong>{{ categorie.nom }}</strong></p>
+        <span style="margin-left: 10px; font-size: 1rem; color: #ddd;">
+            👁️ {{ categorie.views }} vues
+        </span>
+
+    </section>
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding: 2rem 1rem;">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.75rem; color: #0056b3;">Partenaires de la catégorie "{{ categorie.nom }}"</h2>
+
+        {% if partenaires is not empty %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                {% for partenaire in partenaires %}
+                    <article class="partner-card" style="border-radius: 12px; border: 1px solid #e0e0e0; padding: 1.5rem; background: transparent; transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                        <h5 style="color: #0056b3; margin-bottom: 0.8rem;">{{ partenaire.nom }}</h5>
+                        <p style="margin: 0.3rem 0;"><strong>📧 Email:</strong> {{ partenaire.email }}</p>
+                        <p style="margin: 0.3rem 0;"><strong>📍 Adresse:</strong> {{ partenaire.adresse }}</p>
+                        <p style="margin: 0.3rem 0;"><strong>📝 Description:</strong> {{ partenaire.description }}</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #6c757d;">
+                            Ajouté le {{ partenaire.dateAjout|date('d/m/Y') }}
+                        </p>
+
+                        <div class="mt-3 d-flex justify-content-between">
+                            <button class="btn btn-primary btn-sm" onclick="openCommentModal({{ partenaire.id }})">Donner mon avis</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="openViewCommentsModal({{ partenaire.id }})">Voir les avis</button>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(partenaires) }}
+            </div>
+
+        {% else %}
+            <div style="margin-top: 2rem; padding: 1rem 1.5rem; background-color: #fff3cd; color: #856404; border-radius: 8px; border: 1px solid #ffeeba;">
+                Aucun partenaire trouvé pour cette catégorie.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal for writing a comment -->
+    <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="commentForm" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="commentModalLabel">Donner votre avis</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <textarea name="commentaire" id="commentaireInput" class="form-control" rows="5" placeholder="Écrivez votre avis ici..." required></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for viewing comments -->
+    <div class="modal fade" id="viewCommentsModal" tabindex="-1" aria-labelledby="viewCommentsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewCommentsModalLabel">Avis des utilisateurs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body" id="commentsContainer">
+                    <p>Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPartnerId = null;
+        //ouvrir la modale d'avis
+        function openCommentModal(partnerId) {
+            currentPartnerId = partnerId;
+            document.getElementById('commentaireInput').value = '';
+            var commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+            commentModal.show();
+        }
+
+        document.getElementById('commentForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent normal form submission
+
+            const commentaire = document.getElementById('commentaireInput').value;
+
+            fetch('/partenaire/' + currentPartnerId + '/avis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ commentaire: commentaire }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Votre avis a été envoyé avec succès.');
+                        bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                })
+                .catch(() => {
+                    alert('Erreur lors de l\'envoi.');
+                });
+        });
+
+        function openViewCommentsModal(partnerId) {
+            fetch('/partenaire/' + partnerId + '/voir-avis')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('commentsContainer').innerHTML = html;
+                    var viewModal = new bootstrap.Modal(document.getElementById('viewCommentsModal'));
+                    viewModal.show();
+                })
+                .catch(() => {
+                    document.getElementById('commentsContainer').innerHTML = '<p class="text-danger">Erreur lors du chargement des avis.</p>';
+                });
+        }
+    </script>
+
+{% endblock %}

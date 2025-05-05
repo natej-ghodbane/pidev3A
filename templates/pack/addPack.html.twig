@@ -1,0 +1,56 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Ajouter un Pack{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Ajouter un Pack</h2>
+
+        <div id="form-container" class="form-container">
+            {{ form_start(formC) }}
+                <div class="form-group">
+                    {{ form_label(formC.nom_pack) }}
+                    {{ form_widget(formC.nom_pack, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.nom_pack) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(formC.description) }}
+                    {{ form_widget(formC.description, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.description) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(formC.prix) }}
+                    {{ form_widget(formC.prix, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.prix) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(formC.duree) }}
+                    {{ form_widget(formC.duree, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.duree) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(formC.avantages) }}
+                    {{ form_widget(formC.avantages, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.avantages) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(formC.statut) }}
+                    {{ form_widget(formC.statut, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(formC.statut) }}
+                </div>
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ path('list_packs') }}" class="btn btn-success">Afficher les packs</a>
+                </div>
+            {{ form_end(formC) }}
+        </div>
+    </div>
+{% endblock %}

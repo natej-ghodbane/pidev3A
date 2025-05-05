@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/chat.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            {# Messages will be dynamically loaded here #}
+        </div>
+        
+        <div class="chat-input-container">
+            <form id="chat-form">
+                <input type="text" id="message-input" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+            <div id="loading-indicator">Sending message...</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/chat.js') }}"></script>
+{% endblock %} 

@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réinitialiser le mot de passe - TrekSwap{% endblock %}
+
+{% block body %}
+<section class="vh-100" style="padding-top: 100px;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+                        <h3 class="mb-5">Réinitialiser le mot de passe</h3>
+
+                        {% for message in app.flashes('success') %}
+                            <div class="alert alert-success">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('error') %}
+                            <div class="alert alert-danger">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+
+                        {{ form_start(resetForm) }}
+                            <div class="form-outline mb-4">
+                                {{ form_widget(resetForm.plainPassword.first) }}
+                                {{ form_errors(resetForm.plainPassword.first) }}
+                            </div>
+
+                            <div class="form-outline mb-4">
+                                {{ form_widget(resetForm.plainPassword.second) }}
+                                {{ form_errors(resetForm.plainPassword.second) }}
+                            </div>
+
+                            <button class="btn btn-primary btn-lg btn-block" type="submit">
+                                Réinitialiser
+                            </button>
+                        {{ form_end(resetForm) }}
+
+                        <hr class="my-4">
+
+                        <div>
+                            <p class="mb-0">Vous vous souvenez de votre mot de passe ? <a href="{{ path('app_login') }}" class="text-primary fw-bold">Se connecter</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

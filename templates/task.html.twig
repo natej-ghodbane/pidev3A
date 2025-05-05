@@ -1,0 +1,715 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Gestion des Tâches{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    <link href="{{ asset('backTemp/css/task-board.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Gestion des Tâches</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_Abonnements') }}">Accueil</a></li>
+                    <li class="breadcrumb-item active">Tâches</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <!-- Statistics Cards Section -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card info-card sales-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-list-task"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ statistics.total }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card info-card revenue-card">
+                        <div class="card-body">
+                            <h5 class="card-title">En Attente</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ statistics.pending }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card info-card customers-card">
+                        <div class="card-body">
+                            <h5 class="card-title">En Cours</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-workspace"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ statistics.doing }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card info-card sales-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Terminées</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ statistics.done }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mt-4">
+                <!-- Task Distribution Chart -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Distribution des Tâches</h5>
+                            <canvas id="taskDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Priority Chart -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Distribution par Priorité</h5>
+                            <canvas id="taskPriorityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Progress Timeline -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Évolution des Tâches</h5>
+                            <canvas id="taskProgressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTaskModal">
+                        <i class="bi bi-plus-circle"></i> Nouvelle Tâche
+                    </button>
+                    <div class="btn-group ms-2">
+                        <button class="btn btn-outline-primary active" id="showActive">Tâches Actives</button>
+                        <button class="btn btn-outline-secondary" id="showArchived">Archives</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="taskSearch" placeholder="Rechercher des tâches...">
+                        <select class="form-select" id="priorityFilter" style="max-width: 150px;">
+                            <option value="">Toutes les priorités</option>
+                            <option value="high">Haute</option>
+                            <option value="medium">Moyenne</option>
+                            <option value="low">Basse</option>
+                        </select>
+                        <select class="form-select" id="categoryFilter" style="max-width: 150px;">
+                            <option value="">Toutes les catégories</option>
+                            {% set categories = [] %}
+                            {% for task in tasks %}
+                                {% if task.category not in categories and task.category is not null %}
+                                    {% set categories = categories|merge([task.category]) %}
+                                    <option value="{{ task.category }}">{{ task.category }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Board -->
+            <div class="row" id="activeTasksBoard">
+                <!-- Pending Column -->
+                <div class="col-md-4">
+                    <div class="card task-column" data-status="pending">
+                        <div class="card-header">
+                            <h5><i class="bi bi-clock text-warning"></i> En Attente</h5>
+                        </div>
+                        <div class="card-body task-list">
+                            {% for task in tasks %}
+                                {% if task.status == 'pending' %}
+                                    {{ include('task/_task_card.html.twig', { task: task }) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="col-md-4">
+                    <div class="card task-column" data-status="doing">
+                        <div class="card-header">
+                            <h5><i class="bi bi-person-workspace text-primary"></i> En Cours</h5>
+                        </div>
+                        <div class="card-body task-list">
+                            {% for task in tasks %}
+                                {% if task.status == 'doing' %}
+                                    {{ include('task/_task_card.html.twig', { task: task }) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="col-md-4">
+                    <div class="card task-column" data-status="done">
+                        <div class="card-header">
+                            <h5><i class="bi bi-check-circle text-success"></i> Terminées</h5>
+                        </div>
+                        <div class="card-body task-list">
+                            {% for task in tasks %}
+                                {% if task.status == 'done' %}
+                                    {{ include('task/_task_card.html.twig', { task: task }) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Archived Tasks -->
+            <div class="row d-none" id="archivedTasksBoard">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-archive text-secondary"></i> Archives <span class="badge bg-secondary">{{ statistics.archived }}</span></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="task-list">
+                                {% for task in archivedTasks %}
+                                    {{ include('task/_task_card.html.twig', { task: task }) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Task Modal -->
+        <div class="modal fade" id="newTaskModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nouvelle Tâche</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newTaskForm">
+                            <div class="mb-3">
+                                <label class="form-label">Titre</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Priorité</label>
+                                <select class="form-select" name="priority">
+                                    <option value="low">Basse</option>
+                                    <option value="medium" selected>Moyenne</option>
+                                    <option value="high">Haute</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Catégorie</label>
+                                <input type="text" class="form-control" name="category">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="saveNewTask">Créer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Details Modal -->
+        <div class="modal fade" id="taskDetailsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Détails de la Tâche</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editTaskForm">
+                            <input type="hidden" name="taskId">
+                            <div class="mb-3">
+                                <label class="form-label">Titre</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Priorité</label>
+                                <select class="form-select" name="priority">
+                                    <option value="low">Basse</option>
+                                    <option value="medium">Moyenne</option>
+                                    <option value="high">Haute</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Catégorie</label>
+                                <input type="text" class="form-control" name="category">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger me-auto" id="deleteTask">Supprimer</button>
+                        <button type="button" class="btn btn-secondary" id="archiveTask">Archiver</button>
+                        <button type="button" class="btn btn-primary" id="saveTaskChanges">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block js %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize drag and drop
+            const taskCards = document.querySelectorAll('.task-card');
+            const taskColumns = document.querySelectorAll('.task-column');
+
+            taskCards.forEach(card => {
+                card.setAttribute('draggable', true);
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                card.addEventListener('click', handleTaskClick);
+            });
+
+            taskColumns.forEach(column => {
+                column.addEventListener('dragover', handleDragOver);
+                column.addEventListener('drop', handleDrop);
+            });
+
+            // Task board view toggle
+            document.getElementById('showActive').addEventListener('click', function() {
+                document.getElementById('activeTasksBoard').classList.remove('d-none');
+                document.getElementById('archivedTasksBoard').classList.add('d-none');
+                this.classList.add('active');
+                document.getElementById('showArchived').classList.remove('active');
+            });
+
+            document.getElementById('showArchived').addEventListener('click', function() {
+                document.getElementById('archivedTasksBoard').classList.remove('d-none');
+                document.getElementById('activeTasksBoard').classList.add('d-none');
+                this.classList.add('active');
+                document.getElementById('showActive').classList.remove('active');
+            });
+
+            // Search and filter functionality
+            const searchInput = document.getElementById('taskSearch');
+            const priorityFilter = document.getElementById('priorityFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+
+            function filterTasks() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const priority = priorityFilter.value;
+                const category = categoryFilter.value;
+
+                document.querySelectorAll('.task-card').forEach(card => {
+                    const title = card.querySelector('.task-title').textContent.toLowerCase();
+                    const cardPriority = card.getAttribute('data-priority');
+                    const cardCategory = card.getAttribute('data-category');
+
+                    const matchesSearch = title.includes(searchTerm);
+                    const matchesPriority = !priority || cardPriority === priority;
+                    const matchesCategory = !category || cardCategory === category;
+
+                    card.style.display = matchesSearch && matchesPriority && matchesCategory ? '' : 'none';
+                });
+            }
+
+            searchInput.addEventListener('input', filterTasks);
+            priorityFilter.addEventListener('change', filterTasks);
+            categoryFilter.addEventListener('change', filterTasks);
+
+            // New task form handling
+            document.getElementById('saveNewTask').addEventListener('click', function() {
+                const form = document.getElementById('newTaskForm');
+                const formData = new FormData(form);
+                const data = {
+                    title: formData.get('title'),
+                    description: formData.get('description') || '',
+                    priority: formData.get('priority'),
+                    category: formData.get('category') || '',
+                    status: 'pending'  // Définir le statut initial
+                };
+
+                fetch('{{ path('app_task_new') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success || data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        throw new Error(data.message || 'Erreur lors de la création de la tâche');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    // Fermer le modal et recharger quand même
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newTaskModal'));
+                    modal.hide();
+                    window.location.reload();
+                });
+            });
+
+            // Task details modal handling
+            function handleTaskClick(e) {
+                const taskId = this.getAttribute('data-id');
+                const form = document.getElementById('editTaskForm');
+                
+                form.querySelector('[name="taskId"]').value = taskId;
+                form.querySelector('[name="title"]').value = this.querySelector('.task-title').textContent;
+                form.querySelector('[name="description"]').value = this.getAttribute('data-description') || '';
+                form.querySelector('[name="priority"]').value = this.getAttribute('data-priority');
+                form.querySelector('[name="category"]').value = this.getAttribute('data-category') || '';
+
+                const isArchived = this.closest('#archivedTasksBoard') !== null;
+                const archiveButton = document.getElementById('archiveTask');
+                archiveButton.textContent = isArchived ? 'Restaurer' : 'Archiver';
+
+                new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
+            }
+
+            // Save task changes
+            document.getElementById('saveTaskChanges').addEventListener('click', function() {
+                const form = document.getElementById('editTaskForm');
+                const taskId = form.querySelector('[name="taskId"]').value;
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    if (key !== 'taskId') {
+                        data[key] = value;
+                    }
+                });
+
+                fetch(`/task/${taskId}/edit`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Une erreur est survenue lors de la mise à jour de la tâche');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors de la mise à jour de la tâche');
+                });
+            });
+
+            // Archive/Restore task
+            document.getElementById('archiveTask').addEventListener('click', function() {
+                const taskId = document.getElementById('editTaskForm').querySelector('[name="taskId"]').value;
+                const isArchived = document.querySelector(`[data-id="${taskId}"]`).closest('#archivedTasksBoard') !== null;
+                
+                fetch(`/task/${taskId}/${isArchived ? 'restore' : 'archive'}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Une erreur est survenue lors de l\'archivage/restauration de la tâche');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors de l\'archivage/restauration de la tâche');
+                });
+            });
+
+            // Delete task
+            document.getElementById('deleteTask').addEventListener('click', function() {
+                if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
+                
+                const taskId = document.getElementById('editTaskForm').querySelector('[name="taskId"]').value;
+                
+                fetch(`/task/${taskId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Une erreur est survenue lors de la suppression de la tâche');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors de la suppression de la tâche');
+                });
+            });
+
+            // Drag and drop functionality
+            function handleDragStart(e) {
+                this.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', this.getAttribute('data-id'));
+            }
+
+            function handleDragEnd(e) {
+                this.classList.remove('dragging');
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                const taskId = e.dataTransfer.getData('text/plain');
+                const newStatus = this.closest('.task-column').getAttribute('data-status');
+
+                fetch(`/task/${taskId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Une erreur est survenue lors de la mise à jour du statut');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Une erreur est survenue lors de la mise à jour du statut');
+                });
+            }
+
+            // Charts initialization
+            function initializeCharts() {
+                // Task Distribution Chart (Doughnut)
+                const taskDistributionCtx = document.getElementById('taskDistributionChart').getContext('2d');
+                new Chart(taskDistributionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['En Attente', 'En Cours', 'Terminées', 'Archivées'],
+                        datasets: [{
+                            data: [
+                                {{ statistics.pending }},
+                                {{ statistics.doing }},
+                                {{ statistics.done }},
+                                {{ statistics.archived }}
+                            ],
+                            backgroundColor: [
+                                '#ffc107',  // Warning yellow for pending
+                                '#0d6efd',  // Primary blue for doing
+                                '#198754',  // Success green for done
+                                '#6c757d'   // Secondary gray for archived
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Répartition des Tâches par Statut'
+                            }
+                        }
+                    }
+                });
+
+                // Task Priority Distribution (Bar)
+                const taskPriorityCtx = document.getElementById('taskPriorityChart').getContext('2d');
+                new Chart(taskPriorityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Haute', 'Moyenne', 'Basse'],
+                        datasets: [{
+                            label: 'Nombre de Tâches',
+                            data: [
+                                document.querySelectorAll('.task-card[data-priority="high"]').length,
+                                document.querySelectorAll('.task-card[data-priority="medium"]').length,
+                                document.querySelectorAll('.task-card[data-priority="low"]').length
+                            ],
+                            backgroundColor: [
+                                '#dc3545',  // Danger red for high
+                                '#ffc107',  // Warning yellow for medium
+                                '#198754'   // Success green for low
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Répartition par Niveau de Priorité'
+                            }
+                        }
+                    }
+                });
+
+                // Task Progress Timeline (Line)
+                const taskProgressCtx = document.getElementById('taskProgressChart').getContext('2d');
+                new Chart(taskProgressCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['En Attente', 'En Cours', 'Terminées'],
+                        datasets: [{
+                            label: 'Progression des Tâches',
+                            data: [
+                                {{ statistics.pending }},
+                                {{ statistics.doing }},
+                                {{ statistics.done }}
+                            ],
+                            fill: true,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Progression des Tâches par État'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize charts
+            initializeCharts();
+
+            // Update charts when tasks are modified
+            function updateCharts() {
+                // Remove existing charts
+                Chart.helpers.each(Chart.instances, (instance) => {
+                    instance.destroy();
+                });
+                // Reinitialize charts with new data
+                initializeCharts();
+            }
+
+            // Add updateCharts() call after each task modification
+            const taskModificationEvents = [
+                'saveNewTask',
+                'saveTaskChanges',
+                'archiveTask',
+                'deleteTask'
+            ];
+
+            taskModificationEvents.forEach(eventId => {
+                const element = document.getElementById(eventId);
+                if (element) {
+                    const originalClick = element.onclick;
+                    element.onclick = function(e) {
+                        if (originalClick) originalClick.call(this, e);
+                        setTimeout(updateCharts, 1000); // Update charts after reload
+                    };
+                }
+            });
+        });
+    </script>
+{% endblock %} 

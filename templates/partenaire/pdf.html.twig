@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrat de Partenariat</title>
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            padding: 50px;
+            color: #333;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .logo {
+            width: 45px; /* ➔ réduit la taille du logo ici */
+        }
+        .title {
+            flex: 1;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c3e50;
+            letter-spacing: 1px;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: #ccc;
+            margin: 30px 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            text-transform: uppercase;
+        }
+        p, ul li {
+            margin: 5px 0;
+        }
+        ul {
+            margin-left: 20px;
+        }
+
+        /* SIGNATURE PART */
+        .signature-container {
+            display: flex;
+            justify-content: space-evenly;
+            margin-top: 50px;
+            align-items: flex-start;
+        }
+        .signature-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40%;
+            margin-bottom: 50px;
+        }
+        .signature-text {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .signature-line {
+            width: 220px;
+            border-top: 1.5px solid #000;
+            margin-top: 20px;
+        }
+
+        /* DATE */
+        .date-signature {
+            text-align: right;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div style="page-break-inside: avoid;">
+
+    <!-- EN-TETE -->
+    <div class="header">
+        <img src="data:image/png;base64,{{ logo_base64 }}" alt="Logo" class="logo">
+        <div class="title">Contrat de Partenariat</div>
+    </div>
+
+    <hr>
+
+    <!-- INFOS PRINCIPALES -->
+    <p><strong>Date d'ajout :</strong> {{ partenaire.dateAjout|date('d/m/Y') }}</p>
+    <p><strong>Partenaire :</strong> {{ partenaire.nom }}</p>
+    <p><strong>Adresse :</strong> {{ partenaire.adresse }}</p>
+    <p><strong>Email :</strong> {{ partenaire.email }}</p>
+    <p><strong>Catégorie :</strong> {{ partenaire.getIdCategorie.nom }}</p>
+    <p><strong>Montant de Partenariat :</strong> {{ partenaire.montant }} TND</p>
+
+    <hr>
+
+    <!-- CLAUSES DU CONTRAT -->
+    <div>
+        <div class="section-title">Article 1 : Objet</div>
+        <p>Le présent contrat a pour objet de formaliser la collaboration entre l'organisation et le partenaire mentionné ci-dessus.</p>
+
+        <div class="section-title">Article 2 : Engagements des Parties</div>
+        <ul>
+            <li>Respecter les obligations contractuelles.</li>
+            <li>Collaborer dans un esprit de bonne foi et de transparence.</li>
+            <li>Respecter les délais et les conditions financières convenues.</li>
+        </ul>
+
+        <div class="section-title">Article 3 : Confidentialité</div>
+        <p>Les parties s'engagent à conserver confidentielles toutes les informations échangées pendant la durée du partenariat.</p>
+
+        <div class="section-title">Article 4 : Montant et Modalités de Paiement</div>
+        <p>Le montant du partenariat s'élève à <strong>{{ partenaire.montant }} TND</strong>, versé selon les modalités définies entre les parties.</p>
+
+        <div class="section-title">Article 5 : Durée du Contrat</div>
+        <p>Le présent contrat est conclu pour une durée de 12 mois à compter de la date de signature, renouvelable par accord écrit.</p>
+
+        <div class="section-title">Article 6 : Résiliation</div>
+        <p>Le contrat pourra être résilié par l'une des parties avec un préavis écrit de 30 jours en cas de non-respect des obligations.</p>
+
+        <div class="section-title">Article 7 : Juridiction compétente</div>
+        <p>Tout litige sera soumis à la compétence exclusive des tribunaux de Tunis.</p>
+    </div>
+
+    <hr>
+
+    <!-- SIGNATURES alignées avec espace vertical -->
+    <div class="signature-container">
+        <div class="signature-block">
+            <div class="signature-text">Signature de l'Organisation</div>
+            <div class="signature-line"></div>
+        </div>
+        <div class="signature-block">
+            <div class="signature-text">Signature du Partenaire</div>
+            <div class="signature-line"></div>
+        </div>
+    </div>
+
+    <!-- DATE alignée à droite -->
+    <div class="date-signature">
+        <p>Fait à Tunis, le {{ "now"|date("d/m/Y") }}</p>
+    </div>
+
+</div>
+
+</body>
+</html>

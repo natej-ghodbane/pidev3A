@@ -1,0 +1,90 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier un Partenaire{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Modifier un Partenaire</h1>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
+
+            <div class="mb-3">
+                {{ form_label(form.nom) }}
+                {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                <div class="text-danger">{{ form_errors(form.nom) }}</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                <div class="text-danger">{{ form_errors(form.email) }}</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.adresse) }}
+                {{ form_widget(form.adresse, {'attr': {'class': 'form-control'}}) }}
+                <div class="text-danger">{{ form_errors(form.adresse) }}</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.description) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                <div class="text-danger">{{ form_errors(form.description) }}</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.date_ajout) }}
+                {{ form_widget(form.date_ajout, {'attr': {'class': 'form-control'}}) }}
+                <div class="text-danger">{{ form_errors(form.date_ajout) }}</div>
+            </div>
+
+            {% if form.id_categorie is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.id_categorie) }}
+                    {{ form_widget(form.id_categorie, {'attr': {'class': 'form-control'}}) }}
+                    <div class="text-danger">{{ form_errors(form.id_categorie) }}</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.montant) }}
+                    {{ form_widget(form.montant, {'attr': {'class': 'form-control'}}) }}
+                    <div class="text-danger">{{ form_errors(form.montant) }}</div>
+                </div>
+            {% endif %}
+
+
+            <div class="mb-3">
+                {{ form_label(form.num_tel) }}
+                {{ form_widget(form.num_tel, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.num_tel) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.logo) }}
+                {{ form_widget(form.logo, {'attr': {'class': 'form-control'}}) }}
+                <div class="text-danger">{{ form_errors(form.logo) }}</div>
+
+
+            </div>
+
+            {% if partenaire.logo %}
+                <div class="mb-3 text-center">
+                    <label>Logo actuel :</label><br>
+                    <img src="{{ asset('uploads/partenaires/' ~ partenaire.logo) }}" alt="Logo actuel" style="max-width: 150px; height: auto; margin-top: 10px;">
+                </div>
+            {% endif %}
+
+            <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                <button type="submit" class="btn btn-success w-25 py-2">
+                    ✅ Mettre à jour
+                </button>
+                <a href="{{ path('list_partenaire') }}" class="btn btn-secondary w-25 py-2">
+                    ↩️ Retour à la liste
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </main>
+{% endblock %}

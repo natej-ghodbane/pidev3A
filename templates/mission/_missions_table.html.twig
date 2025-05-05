@@ -1,0 +1,52 @@
+<div class="table-responsive">
+    <table class="table table-hover table-bordered table-striped text-center align-middle custom-table-bg">
+        <thead class="bg-info text-white">
+        <tr>
+            <th class="custom-th">ID</th>
+            <th class="custom-th">ID Récompense</th>
+            <th class="custom-th">Description</th>
+            <th class="custom-th">Points Récompense</th>
+            <th class="custom-th">Statut</th>
+            <th class="custom-th">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for mission in pagination %}
+            <tr>
+                <td class="text-muted">{{ mission.id }}</td>
+                <td>{{ mission.idRecompense ? mission.idRecompense.description : 'N/A' }}</td>
+                <td>{{ mission.description }}</td>
+                <td>{{ mission.pointsRecompense }}</td>
+                <td>
+                    {% if mission.statut|lower == 'valide' %}
+                        <span class="badge bg-success">{{ mission.statut|capitalize }}</span>
+                    {% elseif mission.statut|lower == 'en cours' %}
+                        <span class="badge bg-danger">{{ mission.statut|capitalize }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_mission_edit', { id: mission.id }) }}" class="btn btn-outline-primary btn-sm" title="Modifier">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a href="{{ path('app_mission_delete', { id: mission.id }) }}"
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette mission ?');"
+                           title="Supprimer">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Aucune mission trouvée.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center mt-4">
+    {{ knp_pagination_render(pagination) }}
+</div>

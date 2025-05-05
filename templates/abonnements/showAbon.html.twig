@@ -1,0 +1,227 @@
+{% extends 'base-back.html.twig' %}
+
+{% block body %}
+<main id="main" class="main">
+    <div class="container mt-5">
+        <!-- Title and Toggle Historique Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-primary"></i> Liste des Abonnements</h1>
+            <button id="toggleHistorique" class="btn btn-success d-flex align-items-center">
+                <i id="historiqueIcon" class="fas fa-history me-2"></i> Afficher Historique
+            </button>
+        </div>
+
+<!-- Search and Filter Section -->
+<div class="card p-4 shadow-sm mb-4">
+    <div class="row g-3">
+        <!-- Search Input -->
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="searchQuery" class="form-control" placeholder="Rechercher Abonnement..." />
+            </div>
+        </div>
+
+        
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+        <!-- Prediction Message -->
+        {% if prediction %}
+            <div class="alert alert-info">
+                <strong><i class="fas fa-lightbulb me-2"></i>Prévision de renouvellement:</strong> {{ prediction }}
+            </div>
+        {% endif %}
+
+        <!-- Subscription Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle" id="abonnementTable">
+                <thead style="background-color: white;">
+                    <tr>
+                        <th><i class="fas fa-id-badge text-primary me-1"></i>ID Abonnement</th>
+                        <th><i class="fas fa-box-open text-primary me-1"></i>Pack</th>
+                        <th><i class="fas fa-calendar-plus text-primary me-1"></i>Date de Souscription</th>
+                        <th><i class="fas fa-calendar-times text-primary me-1"></i>Date d'Expiration</th>
+                        <th><i class="fas fa-toggle-on text-primary me-1"></i>Statut</th>
+                        <th class="text-center"><i class="fas fa-cogs text-primary me-1"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all">
+                    {% for abonnement in abonnements %}
+                        <tr>
+                            <td>{{ abonnement.getIdAbonnement() }}</td>
+                            <td>{{ abonnement.getPack().getNomPack() }}</td>
+                            <td>{{ abonnement.getDateSouscription()|date('d/m/Y') }}</td>
+                            <td>{{ abonnement.getDateExpiration()|date('d/m/Y') }}</td>
+                            <td>
+                                {% if abonnement.getStatut() == 'actif' %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Actif</span>
+                                {% elseif abonnement.getStatut() == 'expire' %}
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Expire</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-pause-circle me-1"></i>Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td class="d-flex justify-content-center gap-2">
+                                <a href="{{ path('edit_Abonnement', { id_abonnement: abonnement.getIdAbonnement() }) }}" 
+                                   class="btn btn-outline-primary btn-sm" title="Modifier">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <a href="{{ path('delete_Abonnement', { id_abonnement: abonnement.getIdAbonnement() }) }}" 
+                                   class="btn btn-outline-danger btn-sm" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                <a href="{{ path('subscription_predict', { id: abonnement.getIdAbonnement() }) }}" 
+                                   class="btn btn-outline-info btn-sm" title="Prévision de Renouvellement">
+                                    <i class="fas fa-calendar-check"></i> Prédiction
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center"><i class="fas fa-info-circle me-2"></i>Aucun abonnement trouvé.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tbody id="searchResults"></tbody>
+            </table>
+        </div>
+
+        <!-- Add Subscription Button -->
+        <div class="text-center mt-4">
+            <a href="{{ path('add_Abonnement') }}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-2"></i> Ajouter un Abonnement
+            </a>
+        </div>
+
+        <!-- Historique Table -->
+        <div id="historiqueSection" style="display: none; opacity: 0; transition: opacity 0.5s;">
+            <h1 class="text-primary mt-5"></i>Historique des Abonnements</h1>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead style="background-color: white;">
+                        <tr>
+                            <th><i class="fas fa-calendar-day text-primary me-1"></i>Date</th>
+                            <th><i class="fas fa-tasks text-primary me-1"></i>Action</th>
+                            <th><i class="fas fa-id-card text-primary me-1"></i>Abonnement ID</th>
+                            <th><i class="fas fa-info-circle text-primary me-1"></i>Détails</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for historique in historiques %}
+                            <tr>
+                                <td>{{ historique.dateAction|date('d/m/Y H:i') }}</td>
+                                <td>{{ historique.action }}</td>
+                                <td>{{ historique.abonnementId }}</td>
+                                <td>{{ historique.details }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Toggle Historique Script -->
+<script>
+    document.getElementById('toggleHistorique').addEventListener('click', function() {
+        var historiqueSection = document.getElementById('historiqueSection');
+        var historiqueIcon = document.getElementById('historiqueIcon');
+        var buttonText = this;
+
+        if (historiqueSection.style.display === 'none') {
+            historiqueSection.style.display = 'block';
+            setTimeout(function() {
+                historiqueSection.style.opacity = 1;
+            }, 10);
+            buttonText.innerHTML = '<i id="historiqueIcon" class="fas fa-times me-2"></i> Cacher Historique';
+        } else {
+            historiqueSection.style.opacity = 0;
+            setTimeout(function() {
+                historiqueSection.style.display = 'none';
+            }, 500);
+            buttonText.innerHTML = '<i id="historiqueIcon" class="fas fa-history me-2"></i> Afficher Historique';
+        }
+    });
+</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $("#searchQuery").keyup(function() {
+                var value = $(this).val();
+
+                if (value.trim() === '') {
+                    $('#abonnementTable tbody#all').show();
+                    $('#abonnementTable tbody#searchResults').empty();
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ path('search_abonnement') }}",
+                    type: 'GET',
+                    data: { 'searchValue': value },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.length > 0) {
+                            $('#abonnementTable tbody#searchResults').empty();
+                            $('#abonnementTable tbody#all').hide();
+
+                            $.each(response, function(i, abonnement) {
+                                let statutBadge = '';
+                                if (abonnement.statut === 'actif') {
+                                    statutBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Actif</span>';
+                                } else if (abonnement.statut === 'expire') {
+                                    statutBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Expire</span>';
+                                } else {
+                                    statutBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-pause-circle me-1"></i>Inactif</span>';
+                                }
+
+                                $('#abonnementTable tbody#searchResults').append(
+                                    '<tr>' +
+                                    '<td>' + abonnement.id_abonnement + '</td>' +
+                                    '<td>' + (abonnement.pack ? abonnement.pack.nom_pack : 'N/A') + '</td>' +
+                                    '<td>' + (abonnement.date_Souscription ? abonnement.date_Souscription : '-') + '</td>' +
+                                    '<td>' + (abonnement.date_Expiration ? abonnement.date_Expiration : '-') + '</td>' +
+                                    '<td>' + statutBadge + '</td>' +
+                                    '<td class="d-flex justify-content-center gap-2">' +
+                                    '<a href="/abonnement/edit/' + abonnement.id_abonnement + '" class="btn btn-outline-primary btn-sm" title="Modifier">' +
+                                    '<i class="fas fa-pencil-alt"></i>' +
+                                    '</a>' +
+                                    '<a href="/abonnement/delete/' + abonnement.id_abonnement + '" class="btn btn-outline-danger btn-sm" title="Supprimer">' +
+                                    '<i class="fas fa-trash-alt"></i>' +
+                                    '</a>' +
+                                    '<a href="/abonnement/predict/' + abonnement.id_abonnement + '" class="btn btn-outline-info btn-sm" title="Prévision de Renouvellement">' +
+                                    '<i class="fas fa-calendar-check"></i> Prédiction' +
+                                    '</a>' +
+                                    '</td>' +
+                                    '</tr>'
+                                );
+                            });
+                        } else {
+                            $('#abonnementTable tbody#searchResults').empty();
+                            $('#abonnementTable tbody#all').hide();
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur lors de la recherche !');
+                    }
+                });
+
+                return false;
+            });
+        });
+    </script>
+
+
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends 'base.html.twig' %}
+
+{% block welcome %}
+    <h1 class="text-center mt-5 mb-4 fw-bold">🌟 Nos Missions</h1>
+{% endblock %}
+
+{% block body %}
+    <style>
+        .stats-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .stats-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+        .btn-history {
+            background: #ffffff;
+            color: #333333;
+            border: 1px solid #cccccc;
+            padding: 8px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .btn-history:hover {
+            background: #f5f5f5;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        .mission-card {
+            background: linear-gradient(135deg, #ffffff, #f1f3f8);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            border: 1px solid #e0e5ee;
+        }
+        .empty-message {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+            margin-top: 40px;
+        }
+         .top3-grid {
+             display: flex;
+             justify-content: center;
+             align-items: flex-end;
+             gap: 40px;
+             margin-bottom: 40px;
+             flex-wrap: wrap;
+         }
+        .top3-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 180px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            transition: 0.3s;
+            position: relative;
+        }
+        .top3-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+        .top3-card.first {
+            order: 2; /* Milieu */
+            margin-bottom: 30px; /* Plus haut */
+        }
+        .top3-card.second {
+            order: 1; /* Gauche */
+            margin-bottom: 10px; /* Moins haut */
+        }
+        .top3-card.third {
+            order: 3; /* Droite */
+            margin-bottom: 5px; /* Encore moins haut */
+        }
+        .top3-medal {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+        .top3-card h5 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .top3-card .points {
+            color: #0d6efd;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .btn-login-to-validate {
+            background-color: #789ebf;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 6px 90px;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            letter-spacing: 0.3px;
+            width: auto;
+        }
+        .btn-login-to-validate:hover {
+            background-color: #84a2bc;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+
+    </style>
+
+
+
+
+    {# 🔥 Flash messages animés #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'success' ? 'success flash-success' : (label == 'error' ? 'danger' : label) }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <main class="container py-5">
+
+        {% if app.user %}
+            <div class="stats-bar">
+                <div class="stats-info">
+                    <span>🏆 <strong>{{ totalPoints }}</strong> points</span>
+                    <span>🎯 <strong>{{ missionsValideesAujourdhui }}</strong> missions aujourd'hui</span>
+                </div>
+
+                <a href="{{ path('app_mes_missions') }}" class="btn-history">
+                    📜 Historique
+                </a>
+            </div>
+        {% endif %}
+
+        {# 🌟 TOP 3 UTILISATEURS #}
+        <h2 class="text-center mb-4 text-primary fw-bold">🏆 Top 3 des Utilisateurs</h2>
+        <div class="top3-grid">
+            {% for top in top3Users %}
+                <div class="top3-card
+            {% if loop.index == 1 %}first{% elseif loop.index == 2 %}second{% elseif loop.index == 3 %}third{% endif %}">
+
+                    {% if loop.index == 1 %}
+                        <img src="{{ asset('badges/gold.png') }}" alt="Gold" class="top3-medal">
+                    {% elseif loop.index == 2 %}
+                        <img src="{{ asset('badges/silver.png') }}" alt="Silver" class="top3-medal">
+                    {% elseif loop.index == 3 %}
+                        <img src="{{ asset('badges/bronze.png') }}" alt="Bronze" class="top3-medal">
+                    {% endif %}
+                    <h5>{{ top.user.nom }} {{ top.user.prenom }}</h5>
+                    <div class="points">{{ top.points }} pts</div>
+                </div>
+            {% endfor %}
+        </div>
+
+
+
+        {# 🎯 Les Missions #}
+        <div class="mission-grid">
+            {% for mission in missions %}
+                <div class="mission-card">
+                    <div>
+                        <h5>{{ mission.description }}</h5>
+                        <p class="details">
+                            <strong>Points :</strong> {{ mission.pointsRecompense }} pts<br>
+                            <strong>Récompense :</strong> {{ mission.idRecompense.description ?? 'Aucune' }}
+                        </p>
+                    </div>
+
+                    {% if app.user %}
+                        {% if mission.id in missionsValidees %}
+                            <button class="btn btn-success" disabled>✅ Mission déjà validée</button>
+                        {% else %}
+                            <form method="post" action="{{ path('app_mission_valider', {id: mission.id}) }}" enctype="multipart/form-data">
+                                <input type="file" name="preuve" accept="image/*" required class="form-control mb-2">
+                                <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                                <button type="submit" class="btn btn-login-to-validate mt-2">📷 Valider la mission</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-login-to-validate">
+                            Connexion requise pour valider
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="empty-message">Aucune mission disponible pour le moment.</p>
+            {% endfor %}
+        </div>
+
+    </main>
+
+    {# ✅ Charger reCAPTCHA une seule fois #}
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+{% endblock %}

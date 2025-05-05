@@ -1,0 +1,55 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier la Récompense{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Modifier la Récompense</h1>
+
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#modifierForm" aria-expanded="true" aria-controls="modifierForm">
+                    🎯 Afficher / Masquer le formulaire
+                </button>
+            </div>
+
+            <div class="collapse show" id="modifierForm">
+                <div class="card card-body shadow-sm">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <div class="mb-3">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.cout_en_points) }}
+                        {{ form_widget(form.cout_en_points, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.cout_en_points) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.disponibilite) }}
+                        {{ form_widget(form.disponibilite, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.disponibilite) }}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success">✅ Mettre à jour</button>
+                        <a href="{{ path('app_recompense_index') }}" class="btn btn-secondary">↩️ Retour à la liste</a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <form method="post" action="{{ path('app_recompense_delete', {id: recompense.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette récompense ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ recompense.id) }}">
+                    <button class="btn btn-danger">🗑️ Supprimer la récompense</button>
+                </form>
+            </div>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Calendrier des Activités{% endblock %}
+
+{% block body %}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <style>
+        #calendar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+    </style>
+
+    <div class="container my-5">
+        <h1 class="text-center mb-4">📅 Calendrier des Activités</h1>
+
+        <!-- 🔥 Destination Filter -->
+        <div class="row mb-4">
+            <div class="col-md-4 offset-md-4">
+                <select id="destinationFilter" class="form-select">
+                    <option value="">🌍 Toutes les Destinations</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 🚀 Stats Cards -->
+        <div class="row mb-4 text-center" id="statsRow">
+            <!-- Filled dynamically -->
+        </div>
+
+        <!-- 🏷️ Activity Counter -->
+        <div class="row mb-3 text-center">
+            <div class="col">
+                <h5 id="activityCount">Toutes les Activités affichées</h5>
+            </div>
+        </div>
+
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">Détail Activité</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>🏖️ Destination :</strong> <span id="modalDestination"></span></p>
+                    <p><strong>📅 Date :</strong> <span id="modalDate"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let calendar;
+            let activities = [];
+            const calendarEl = document.getElementById('calendar');
+            const filterEl = document.getElementById('destinationFilter');
+            const statsRow = document.getElementById('statsRow');
+            const activityCount = document.getElementById('activityCount');
+
+            function loadCalendar(events) {
+                if (calendar) {
+                    calendar.destroy();
+                }
+
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'fr',
+                    themeSystem: 'bootstrap5',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: events,
+                    eventDidMount: function (info) {
+                        info.el.style.backgroundColor = getColor(info.event.extendedProps.destination);
+                        info.el.style.border = `3px solid ${getStatusColor(info.event.extendedProps.status)}`;
+
+                        new bootstrap.Tooltip(info.el, {
+                            title: "🏖️ Destination: " + info.event.extendedProps.destination,
+                            placement: 'top',
+                            trigger: 'hover',
+                            container: 'body'
+                        });
+                    },
+                    eventClick: function(info) {
+                        info.jsEvent.preventDefault();
+                        const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                        document.getElementById('modalTitle').innerText = info.event.title;
+                        document.getElementById('modalDestination').innerText = info.event.extendedProps.destination;
+                        document.getElementById('modalDate').innerText = info.event.start.toLocaleDateString();
+                        modal.show();
+                    }
+                });
+
+                calendar.render();
+            }
+
+            function getColor(destination) {
+                const colors = [
+                    '#0d6efd', '#198754', '#dc3545', '#ffc107', '#6f42c1', '#fd7e14'
+                ];
+                let hash = 0;
+                for (let i = 0; i < destination.length; i++) {
+                    hash = destination.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return colors[Math.abs(hash) % colors.length];
+            }
+
+            function getStatusColor(status) {
+                if (status === 'completed') return '#198754'; // green
+                if (status === 'inactive') return '#dc3545'; // red
+                return '#0d6efd'; // blue for active
+            }
+
+            function updateStats(events) {
+                const total = events.length;
+                const active = events.filter(e => e.status === 'active').length;
+                const inactive = events.filter(e => e.status === 'inactive').length;
+                const completed = events.filter(e => e.status === 'completed').length;
+
+                statsRow.innerHTML = `
+                    <div class="col-md-3 mb-2">
+                        <div class="card bg-light shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Total</h6>
+                                <p class="card-text fw-bold">${total}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card bg-primary text-white shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Actives</h6>
+                                <p class="card-text fw-bold">${active}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card bg-warning text-dark shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Inactives</h6>
+                                <p class="card-text fw-bold">${inactive}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card bg-success text-white shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Terminées</h6>
+                                <p class="card-text fw-bold">${completed}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                activityCount.textContent = `🌍 ${total} activités affichées`;
+            }
+
+            fetch('/api/activities')
+                .then(response => response.json())
+                .then(data => {
+                    activities = data;
+
+                    const destinations = [...new Set(data.map(event => event.destination))];
+                    destinations.forEach(dest => {
+                        const option = document.createElement('option');
+                        option.value = dest;
+                        option.textContent = dest;
+                        filterEl.appendChild(option);
+                    });
+
+                    loadCalendar(activities);
+                    updateStats(activities);
+                })
+                .catch(() => {
+                    alert('Erreur lors du chargement des activités.');
+                });
+
+            filterEl.addEventListener('change', function () {
+                const selected = this.value;
+                if (selected === "") {
+                    loadCalendar(activities);
+                    updateStats(activities);
+                } else {
+                    const filtered = activities.filter(event => event.destination === selected);
+                    loadCalendar(filtered);
+                    updateStats(filtered);
+                }
+            });
+        });
+    </script>
+{% endblock %}

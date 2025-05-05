@@ -1,0 +1,27 @@
+{% extends 'base-back.html.twig' %}
+
+{% block hist %}
+   <h1>Historique des Abonnements</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Action</th>
+            <th>Abonnement ID</th>
+            <th>Détails</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for historique in historiques %}
+            <tr>
+                <td>{{ historique.dateAction|date('d/m/Y H:i') }}</td>
+                <td>{{ historique.action }}</td>
+                <td>{{ historique.abonnementId }}</td>
+                <td>{{ historique.details }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

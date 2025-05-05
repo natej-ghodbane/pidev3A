@@ -1,0 +1,67 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier la Mission{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Modifier la Mission</h1>
+
+            <div class="text-center mb-3">
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#modifierForm" aria-expanded="true" aria-controls="modifierForm">
+                    🛠️ Afficher / Masquer le formulaire
+                </button>
+            </div>
+
+            <div class="collapse show" id="modifierForm">
+                <div class="card card-body shadow-sm">
+                    {{ form_start(form,{'attr':{'novalidate':'novalidate'}})}}
+                    {% for error in form.vars.errors %}
+                        <div class="alert alert-danger">
+                            {{ error.message }}
+                        </div>
+                    {% endfor %}
+
+
+                    <div class="mb-3">
+                        {{ form_label(form.id_recompense, "Recompense") }}
+                        {{ form_widget(form.id_recompense, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.id_recompense) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.points_recompense) }}
+                        {{ form_widget(form.points_recompense, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.points_recompense) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.statut) }}
+                        {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.statut) }}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success">✅ Mettre à jour</button>
+                        <a href="{{ path('app_mission_index') }}" class="btn btn-secondary">↩️ Retour à la liste</a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ path('app_mission_delete', {id: mission.id}) }}" class="btn btn-danger"
+                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette mission ?');">
+                    🗑️ Supprimer la mission
+                </a>
+            </div>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'base-back.html.twig' %}
+
+
+
+{% block body %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Function to handle search input
+        $('#search-input').on('input', function () {
+            var searchTerm = $(this).val().toLowerCase();
+
+            // Hide all rows initially
+            $('.table tbody tr').hide();
+
+            // Show only the rows that match the search term
+            $('.table tbody tr').each(function () {
+                var textContent = $(this).text().toLowerCase();
+                if (textContent.includes(searchTerm)) {
+                    $(this).show();
+                }
+            });
+        });
+    });
+</script>
+<main id="main" class="main" >
+    <div class="container">
+        <h1 class="mb-4">Liste des Hotels</h1>
+<input type="text" id="search-input" placeholder="Search...">
+
+        {% if hotels|length > 0 %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">NameH</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Réservations</th>
+                        <th scope="col">PhotoUrl</th>
+                        <th scope="col">Price</th>
+
+                        <th scope="col">Actions</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hotel in hotels %}
+                        <tr>
+                            <td>{{ hotel.id }}</td>
+                            <td>{{ hotel.NameH }}</td>
+                            <td>{{ hotel.Rating }}</td>
+                            <td>{{ hotel.Location }}</td>
+                            <td>{{ hotel.Description }}</td>
+                          
+
+                            <td> <strong>Réservations:</strong>
+                                <ul>
+                                    {% for reservation in hotel.getReservation() %}
+                                        <li>{{ reservation.IdClent }}</li>
+                                        
+                                        {% endfor %}
+    
+                                       
+                                </ul></td>
+                            <td>
+                                {% if hotel.PhotoUrl %}
+                                    <img src="{{ hotel.PhotoUrl }}" alt="{{ hotel.NameH }}" style="max-width: 100px;">
+                                {% else %}
+                                    No Photo
+                                {% endif %}
+                            </td>
+                           <td>{{ hotel.Price }}</td>
+
+                            <td>
+                                <a href="{{ path('showhotel', {'id': hotel.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                                <a href="{{ path('edithotel', {'id': hotel.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                <a href="{{ path('deletehotel', {'id': hotel.id}) }}" class="btn btn-warning btn-sm">Supprimer</a>
+
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">Aucun enregistrement trouvé.</p>
+        {% endif %}
+
+        <a href="{{ path('addhotel') }}" class="btn btn-warning btn-sm">Créer Nouveau Hotel</a>
+
+    </div>
+</main>
+<style>
+#search-input {
+  padding: 10px; /* Adjust padding as needed */
+  width: 300px; /* Adjust width as needed */
+  border: 1px solid #ccc; /* Border color */
+  border-radius: 5px; /* Border radius for rounded corners */
+  outline: none; /* Remove default focus outline */
+  font-size: 16px; /* Adjust font size as needed */
+  margin-bottom: 10px; /* Adjust bottom margin as needed */
+}
+
+#search-input::placeholder {
+  color: #999; /* Placeholder text color */
+}
+
+#search-input:focus {
+  border-color: #66afe9; /* Border color when input is focused */
+  box-shadow: 0 0 5px rgba(102, 175, 233, 0.5); /* Box shadow when input is focused */
+}
+</style>
+{% endblock %}
+

@@ -1,0 +1,7 @@
+# RagChatbotService configuration
+services:
+    # Add this to your existing services section
+    App\Service\RagChatbotService:
+        arguments:
+            $httpClient: '@http_client'
+            $apiBaseUrl: 'http://localhost:3300'  # Update this if your API is hosted elsewhere

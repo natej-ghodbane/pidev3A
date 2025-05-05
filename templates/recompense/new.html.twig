@@ -1,0 +1,39 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Ajouter une Récompense{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-warning">Ajouter une Nouvelle Récompense</h1>
+
+            {{ form_start(form,{'attr':{'novalidate':'novalidate'}})}}
+
+            <div class="mb-3">
+                {{ form_label(form.description) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Description de la récompense'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.cout_en_points) }}
+                {{ form_widget(form.cout_en_points, {'attr': {'class': 'form-control', 'placeholder': 'Coût en points'}}) }}
+                {{ form_errors(form.cout_en_points) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.disponibilite) }}
+                {{ form_widget(form.disponibilite, {'attr': {'class': 'form-control', 'placeholder': 'Disponibilité de la récompense'}}) }}
+                {{ form_errors(form.disponibilite) }}
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success">Ajouter la Récompense</button>
+                <a href="{{ path('app_recompense_index') }}" class="btn btn-secondary ms-3">Retour à la liste</a>
+            </div>
+
+            {{ form_end(form) }}
+
+        </div>
+    </main>
+{% endblock %}

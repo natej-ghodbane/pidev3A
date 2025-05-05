@@ -1,0 +1,8 @@
+<form method="post" action="{{ path('app_recompense_delete', {'id': recompense.id}) }}"
+      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette récompense ?');"
+      class="d-inline">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ recompense.id) }}">
+    <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Supprimer définitivement">
+        🗑️ Supprimer
+    </button>
+</form>

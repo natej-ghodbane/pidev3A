@@ -1,0 +1,202 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Calendrier des Réclamations{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
+    <style>
+        #calendar {
+            height: 650px;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+        }
+        .fc-event {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fc-event:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .fc-toolbar-title {
+            font-size: 1.5em !important;
+        }
+        .fc-button {
+            background-color: #4e73df !important;
+            border-color: #4e73df !important;
+        }
+        .fc-button-active {
+            background-color: #2e59d9 !important;
+            border-color: #2e59d9 !important;
+        }
+        .event-tooltip {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            max-width: 300px;
+        }
+        .calendar-filters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Calendrier des Réclamations</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('reclamationBack') }}">Réclamations</a></li>
+                    <li class="breadcrumb-item active">Calendrier</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Vue Calendrier</h5>
+                            
+                            <div class="calendar-filters">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input filter-state" type="checkbox" id="filter-en-cours" value="En cours" checked>
+                                    <label class="form-check-label" for="filter-en-cours">En cours</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input filter-state" type="checkbox" id="filter-resolue" value="Résolue" checked>
+                                    <label class="form-check-label" for="filter-resolue">Résolue</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input filter-state" type="checkbox" id="filter-rejetee" value="Rejetée" checked>
+                                    <label class="form-check-label" for="filter-rejetee">Rejetée</label>
+                                </div>
+
+                            </div>
+                            
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/fr.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let allEvents = [];
+            let filteredEvents = [];
+            let calendar = null;
+            
+            // Function to filter events based on selected states
+            function filterEvents() {
+    const selectedStates = Array.from(document.querySelectorAll('.filter-state:checked'))
+        .map(checkbox => checkbox.value);
+    
+    filteredEvents = allEvents.filter(event => selectedStates.includes(event.extendedProps.etat));
+    
+    if (calendar) {
+        // Supprimer toutes les sources existantes (très important)
+        calendar.getEventSources().forEach(source => source.remove());
+        
+        // Ajouter les événements filtrés en tant que nouvelle source
+        calendar.addEventSource(filteredEvents);
+    }
+}
+
+            
+            // Initialize calendar
+const calendarEl = document.getElementById('calendar');
+calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'fr',
+    headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+    },
+    events: function(info, successCallback, failureCallback) {
+        fetch("{{ path('app_reclamation_calendar_events') }}")
+            .then(response => response.json())
+            .then(data => {
+                allEvents = data;
+                const selectedStates = Array.from(document.querySelectorAll('.filter-state:checked'))
+                    .map(checkbox => checkbox.value);
+                const initialFilteredEvents = allEvents.filter(event => selectedStates.includes(event.extendedProps.etat));
+                successCallback(initialFilteredEvents);
+            })
+            .catch(error => {
+                console.error('Error fetching events:', error);
+                failureCallback(error);
+            });
+    } // ← cette accolade manquait pour fermer 'events: function()'
+});
+
+}
+
+                eventDidMount: function(info) {
+                    // Add tooltip
+                    info.el.title = `Type: ${info.event.extendedProps.type}
+Description: ${info.event.extendedProps.description}
+État: ${info.event.extendedProps.etat}`;
+                },
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        return false;
+                    }
+                },
+                firstDay: 1,
+                height: 'auto'
+            });
+            
+            calendar.render();
+            
+            // Add event listeners for filters
+            document.querySelectorAll('.filter-state').forEach(checkbox => {
+                checkbox.addEventListener('change', filterEvents);
+            });
+            
+            // Add event listener for refresh button
+            document.getElementById('refresh-calendar').addEventListener('click', function() {
+    fetch("{{ path('app_reclamation_calendar_events') }}")
+        .then(response => response.json())
+        .then(data => {
+            allEvents = data;
+            filteredEvents = allEvents.filter(event => {
+                const selectedStates = Array.from(document.querySelectorAll('.filter-state:checked'))
+                    .map(checkbox => checkbox.value);
+                return selectedStates.includes(event.extendedProps.etat);
+            });
+
+            // Supprimer toutes les anciennes sources AVANT d'ajouter
+            calendar.getEventSources().forEach(source => source.remove());
+
+            // Ajouter proprement les événements filtrés
+            calendar.addEventSource(filteredEvents);
+        })
+        .catch(error => {
+            console.error('Erreur lors du rafraîchissement des événements:', error);
+        });
+});
+
+        });
+    </script>
+{% endblock %} 

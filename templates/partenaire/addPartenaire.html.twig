@@ -1,0 +1,85 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Ajouter un Partenaire{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Ajouter un Partenaire</h1>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
+
+            <div class="mb-3">
+                {{ form_label(form.nom) }}
+                {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.nom) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.adresse) }}
+                {{ form_widget(form.adresse, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.adresse) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.description) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.date_ajout) }}
+                {{ form_widget(form.date_ajout, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.date_ajout) }}
+            </div>
+
+            {% if form.id_categorie is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.id_categorie) }}
+                    {{ form_widget(form.id_categorie, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.id_categorie) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.montant) }}
+                    {{ form_widget(form.montant, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.montant) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.num_tel) }}
+                    {{ form_widget(form.num_tel, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.num_tel) }}
+                </div>
+
+            {% endif %}
+
+            <div class="mb-3">
+                {{ form_label(form.logo) }}
+                {{ form_widget(form.logo, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.logo) }}
+            </div>
+
+
+
+            <div class="text-center mt-4">
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-success w-100 py-3 me-2">
+                        ✅ Ajouter le Partenaire
+                    </button>
+                    <a href="{{ path('list_partenaire') }}" class="btn btn-secondary w-100 py-3 ms-2">
+                        ↩️ Retour à la liste
+                    </a>
+                </div>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </main>
+{% endblock %}

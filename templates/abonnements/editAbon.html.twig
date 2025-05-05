@@ -1,0 +1,71 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier un Abonnement{% endblock %}
+
+{% block body %}
+<main id="main" class="main">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 text-warning">Modifier un Abonnement</h1>
+
+        {{ form_start(form) }}
+
+        <div class="form-group">
+                {{ form_label(form.pack, 'Sélectionner un Pack') }}
+                {{ form_widget(form.pack, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.pack) }}
+                </div>
+                
+        <div class="form-group">
+            {{ form_label(form.date_Souscription) }}
+            {# Render the date picker field #}
+            {{ form_widget(form.date_Souscription, {
+                'attr': {
+                    'class': 'form-control', 
+                    'type': 'date',
+                    'min': 'today'
+                }
+            }) }}
+            {{ form_errors(form.date_Souscription) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.date_Expiration) }}
+            {# Render the expiration date picker field #}
+            {{ form_widget(form.date_Expiration, {
+                'attr': {
+                    'class': 'form-control', 
+                    'type': 'date',
+                    'min': form.date_Souscription.vars.value ? form.date_Souscription.vars.value|date('Y-m-d') : 'today'
+                }
+            }) }}
+            {{ form_errors(form.date_Expiration) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.statut) }}
+            {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.statut) }}
+        </div>
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</main>
+{# Include jQuery and Bootstrap Datepicker #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+    <script>
+        $(document).ready(function(){
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Modifier la Réponse{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Modifier la Réponse</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_reponse_back') }}">Réponses</a></li>
+                    <li class="breadcrumb-item active">Modifier</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Informations de la Réponse</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-3 col-md-4 label">Réclamation associée</div>
+                                <div class="col-lg-9 col-md-8">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="mb-1"><strong>Description :</strong> {{ reponse.reclamation.descriptionRec }}</p>
+                                            <p class="mb-1"><strong>Type :</strong> {{ reponse.reclamation.typeRec }}</p>
+                                            <p class="mb-0"><strong>État :</strong> 
+                                                <span class="badge bg-{{ reponse.reclamation.etatRec == 'En cours' ? 'warning' : (reponse.reclamation.etatRec == 'Résolue' ? 'success' : 'danger') }}">
+                                                    {{ reponse.reclamation.etatRec }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{ form_start(form) }}
+                                <div class="row mb-3">
+                                    <div class="col-lg-3 col-md-4 label">Contenu</div>
+                                    <div class="col-lg-9 col-md-8">
+                                        {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': '5'}}) }}
+                                        {{ form_errors(form.contenu) }}
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-1"></i>Enregistrer
+                                    </button>
+                                    <a href="{{ path('app_reponse_back') }}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Retour à la liste
+                                    </a>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

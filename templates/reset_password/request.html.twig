@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mot de passe oublié - TrekSwap{% endblock %}
+
+{% block body %}
+<section class="vh-100" style="padding-top: 100px;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+                        <h3 class="mb-5">Mot de passe oublié</h3>
+
+                        {% for message in app.flashes('success') %}
+                            <div class="alert alert-success">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('error') %}
+                            <div class="alert alert-danger">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+
+                        <p class="mb-4">Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
+
+                        {{ form_start(requestForm) }}
+                            <div class="form-outline mb-4">
+                                {{ form_widget(requestForm.email) }}
+                                {{ form_errors(requestForm.email) }}
+                            </div>
+
+                            <button class="btn btn-primary btn-lg btn-block" type="submit">
+                                Envoyer
+                            </button>
+                        {{ form_end(requestForm) }}
+
+                        <hr class="my-4">
+
+                        <div>
+                            <p class="mb-0">Vous vous souvenez de votre mot de passe ? <a href="{{ path('app_login') }}" class="text-primary fw-bold">Se connecter</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

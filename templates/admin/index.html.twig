@@ -1,0 +1,335 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Admin Dashboard - TrekSwap{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    <style>
+        .user-stats {
+            margin-bottom: 2rem;
+        }
+        .stats-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .stats-card h3 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .stats-card p {
+            margin: 0;
+            color: #6c757d;
+        }
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-name {
+            margin: 0;
+            font-weight: 600;
+        }
+        .user-email {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .alert {
+            margin-bottom: 1rem;
+        }
+        .delete-modal .modal-header {
+            background-color: #dc3545;
+            color: white;
+        }
+        .delete-modal .modal-body {
+            padding: 2rem;
+            text-align: center;
+        }
+        .delete-modal .warning-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        .delete-modal .user-to-delete {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+        .delete-modal .btn-delete {
+            min-width: 120px;
+        }
+        .search-container {
+            position: relative;
+            width: 300px;
+        }
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade delete-modal" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Confirm User Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <h4>Delete User Account</h4>
+                    <p class="text-muted">You are about to delete the following user account:</p>
+                    <div class="user-to-delete">
+                        <p class="user-to-delete-info mb-0"></p>
+                    </div>
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        This action cannot be undone. All user data will be permanently deleted.
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-delete" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-2"></i>Delete User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Admin Dashboard</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_admin') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Admin Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+
+        <section class="section">
+            <!-- Flash Messages -->
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            <!-- User Statistics -->
+            <div class="row user-stats">
+                <div class="col-lg-4">
+                    <div class="card stats-card bg-primary text-white">
+                        <h3>{{ stats.total }}</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card stats-card bg-success text-white">
+                        <h3>{{ stats.active }}</h3>
+                        <p>Active Users</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card stats-card bg-warning text-white">
+                        <h3>{{ stats.inactive }}</h3>
+                        <p>Inactive Users</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Users Management</h5>
+
+                            <!-- Search Box -->
+                            <div class="search-box">
+                                <div class="search-container">
+                                    <input type="text" id="userSearch" class="form-control" placeholder="Rechercher un utilisateur...">
+                                </div>
+                            </div>
+
+                            <!-- Users Table -->
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Photo</th>
+                                            <th>Email</th>
+                                            <th>Nom</th>
+                                            <th>Prénom</th>
+                                            <th>Type</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userTableBody">
+                                        {% for user in users %}
+                                            <tr class="user-row" 
+                                                data-email="{{ user.email|lower }}" 
+                                                data-nom="{{ user.nom|lower }}" 
+                                                data-prenom="{{ user.prenom|lower }}">
+                                                <td>
+                                                    {% if user.photoProfile %}
+                                                        <img src="{{ asset('uploads/profile_pictures/' ~ user.photoProfile) }}" 
+                                                             alt="Photo de profil" 
+                                                             style="width: 50px; height: 50px; border-radius: 50%;">
+                                                    {% else %}
+                                                        <img src="{{ asset('backTemp/img/profile-img.jpg') }}" 
+                                                             alt="Photo de profil par défaut" 
+                                                             style="width: 50px; height: 50px; border-radius: 50%;">
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ user.email }}</td>
+                                                <td>{{ user.nom }}</td>
+                                                <td>{{ user.prenom }}</td>
+                                                <td>{{ user.typeUser }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#userModal{{ user.id }}">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    {% if user != app.user %}
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-danger delete-user"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteConfirmModal"
+                                                                data-user-id="{{ user.id }}"
+                                                                data-user-name="{{ user.prenom }} {{ user.nom }}"
+                                                                data-user-email="{{ user.email }}"
+                                                                data-delete-url="{{ path('app_admin_delete_user', {'id': user.id}) }}">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+
+                                            <!-- User Details Modal -->
+                                            <div class="modal fade" id="userModal{{ user.id }}" tabindex="-1">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Détails de l'utilisateur</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="text-center mb-3">
+                                                                {% if user.photoProfile %}
+                                                                    <img src="{{ asset('uploads/profile_pictures/' ~ user.photoProfile) }}" 
+                                                                         alt="Photo de profil" 
+                                                                         class="rounded-circle" 
+                                                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                                                {% else %}
+                                                                    <img src="{{ asset('backTemp/img/profile-img.jpg') }}" 
+                                                                         alt="Photo de profil par défaut" 
+                                                                         class="rounded-circle" 
+                                                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="user-details">
+                                                                <p><strong>Nom:</strong> {{ user.prenom }} {{ user.nom }}</p>
+                                                                <p><strong>Email:</strong> {{ user.email }}</p>
+                                                                <p><strong>Type:</strong> {{ user.typeUser }}</p>
+                                                                <p><strong>Statut:</strong> {{ user.isActive ? 'Actif' : 'Inactif' }}</p>
+                                                                <p><strong>Créé le:</strong> {{ user.createdAt ? user.createdAt|date('d/m/Y H:i') : 'N/A' }}</p>
+                                                                <p><strong>Dernière connexion:</strong> {{ user.lastLogin ? user.lastLogin|date('d/m/Y H:i') : 'Jamais' }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('userSearch');
+            const userRows = document.querySelectorAll('.user-row');
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                userRows.forEach(row => {
+                    const email = row.dataset.email;
+                    const nom = row.dataset.nom;
+                    const prenom = row.dataset.prenom;
+                    
+                    if (email.includes(searchTerm) || 
+                        nom.includes(searchTerm) || 
+                        prenom.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Handle delete button clicks
+            document.querySelectorAll('.delete-user').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userName = this.dataset.userName;
+                    const userEmail = this.dataset.userEmail;
+                    const deleteUrl = this.dataset.deleteUrl;
+                    
+                    // Update modal content
+                    document.querySelector('.user-to-delete-info').innerHTML = `
+                        <strong>${userName}</strong><br>
+                        <small class="text-muted">${userEmail}</small>
+                    `;
+                    
+                    // Update delete button href
+                    document.getElementById('confirmDeleteBtn').href = deleteUrl;
+                });
+            });
+        });
+    </script>
+{% endblock %} 

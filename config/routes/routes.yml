@@ -1,0 +1,5 @@
+# RagChatbot routes
+# Note: If you're using annotation routing (as in the controller), this isn't necessary
+rag_chatbot:
+    resource: '../src/Controller/RagChatbotController.php'
+    type: annotation

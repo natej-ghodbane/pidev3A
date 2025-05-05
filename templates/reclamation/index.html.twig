@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Réclamations{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Liste des Réclamations</h1>
+
+        <a href="{{ path('app_reclamation_new') }}" class="btn btn-primary mb-3">Créer une nouvelle réclamation</a>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for reclamation in reclamations %}
+                <tr>
+                    <td>{{ reclamation.idRec }}</td>
+                    <td>{{ reclamation.descriptionRec }}</td>
+                    <td>{{ reclamation.dateRec ? reclamation.dateRec|date('Y-m-d H:i:s') : '' }}</td>
+                    <td>{{ reclamation.typeRec }}</td>
+                    <td>
+                        <a href="{{ path('app_reclamation_show', {'id_rec': reclamation.idRec}) }}" class="btn btn-info btn-sm">Voir</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Aucune réclamation trouvée</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

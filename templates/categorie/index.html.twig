@@ -1,0 +1,147 @@
+{% extends 'base-back.html.twig' %}
+
+{% block title %}Liste des Catégories{% endblock %}
+
+{% block body %}
+    <main id="main" class="main">
+        <div class="container mt-5">
+            <h1 class="text-center mb-4 text-primary">Liste des Catégories</h1>
+
+            <!-- 🔍 Search Input Field -->
+            <input type="text" id="search" class="form-control mb-4" placeholder="Rechercher une catégorie par nom...">
+
+            <!-- Container for better layout -->
+            <div class="card shadow-lg p-4 rounded-lg custom-bg-light">
+                <div class="card-body">
+                    <!-- Table with improved colors and layout -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered table-striped text-center align-middle custom-table-bg">
+                            <thead class="bg-dark text-white">
+                            <tr>
+                                <th class="custom-th">ID Catégorie</th>
+                                <th class="custom-th">Nom Catégorie</th>
+                                <th class="custom-th">Description</th>
+                                <th class="custom-th">Logo</th>
+                                <th class="custom-th">Nombre de Partenaires</th>
+                                <th class="custom-th">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="all">
+                            {% for category in categories %}
+                                <tr>
+                                    <td class="text-muted">{{ category.getId() }}</td>
+                                    <td>{{ category.getNom() }}</td>
+                                    <td>{{ category.getDescription() }}</td>
+                                    <td>
+                                        {% if category.getLogo() %}
+                                            <img src="{{ asset('uploads/logos/' ~ category.getLogo()) }}" alt="Logo" width="100">
+                                        {% else %}
+                                            <span class="text-muted">Pas d'image</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ category.getNbrPartenaire() }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ path('edit_categorie', { id: category.getId() }) }}" class="btn btn-outline-primary btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                            <a href="{{ path('delete_category', { id: category.getId() }) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');" title="Supprimer">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Aucune catégorie trouvée.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tbody id="searchResults"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ path('add_category') }}" class="btn btn-success px-4 py-2">
+                            <i class="bi bi-plus-circle-dotted"></i> Ajouter une Catégorie
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .custom-bg-light {
+            background-color: #e9ecef !important;
+        }
+
+        .custom-table-bg {
+            background-color: #f4f6f9 !important;
+        }
+
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-th {
+            background-color: #ffeeba;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#search').keyup(function () {
+                let value = $(this).val();
+
+                if (value.trim() === '') {
+                    $('#all').show();
+                    $('#searchResults').empty();
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ path('categorie_search') }}",
+                    type: "GET",
+                    data: { searchValue: value },
+                    dataType: "json",
+                    success: function (data) {
+                        $('#searchResults').empty();
+                        $('#all').hide();
+
+                        if (data.length > 0) {
+                            $.each(data, function (i, category) {
+                                $('#searchResults').append(`
+                                    <tr>
+                                        <td>${category.id}</td>
+                                        <td>${category.nom}</td>
+                                        <td>${category.description}</td>
+                                        <td>${category.logo ? `<img src="/uploads/logos/${category.logo}" width="100">` : 'Pas d\'image'}</td>
+                                        <td>${category.nbr_partenaire}</td>
+                                        <td>Actions ici</td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            $('#searchResults').append('<tr><td colspan="6">Aucune catégorie trouvée.</td></tr>');
+                        }
+                    },
+                    error: function () {
+                        alert('Erreur lors de la récupération des données.');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

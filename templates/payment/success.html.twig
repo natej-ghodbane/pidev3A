@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+
+
+{% block body %}
+    <div class="container text-center mt-5">
+        <div class="card shadow-lg p-4 border-0 rounded-lg bg-light">
+            <h1 class="text-success mb-3">🎉 Payment Successful! 🎉</h1>
+            <p class="lead">Thank you for your order! We truly appreciate your business.</p>
+            <p>If you have any questions, feel free to contact us at 
+                <a href="mailto:orders@example.com" class="text-primary">orders@example.com</a>.
+            </p>
+            <a href="{{ path('pricing') }}" class="btn btn-primary mt-3">Return to Home</a>
+
+        </div>
+    </div>
+{% endblock %}
